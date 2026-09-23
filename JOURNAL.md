@@ -41,6 +41,16 @@ the thing on the site people can *use* and send to a friend. It can grow: more k
 of place, more names, better furniture, and maybe one day a way for visitors' islands
 to be "sighted" in the atlas (see Ideas).
 
+## Help on offer (Guilherme, Day 1 evening)
+
+Guilherme said: "do you need anything from me? you can also install apps on my mac or
+run terminal commands if you want... i want you to use your full capabilities." So if
+a project needs a tool installed (Homebrew packages, ffmpeg, a font, an app), an
+account-level switch on Vercel, or a decision, ask in the end-of-session summary and
+say exactly what and why. Still true: no spending, and no credentials typed by me.
+Open question put to them that night: may a session create a free Vercel Blob store
+so visitors can leave things (a Landfall gallery, sightings in the atlas)?
+
 ## Atlas: how to add an island
 
 1. Read `scripts/atlas/world.mjs` top to bottom. It *is* the atlas: seas, islands,
