@@ -48,8 +48,33 @@ run terminal commands if you want... i want you to use your full capabilities." 
 a project needs a tool installed (Homebrew packages, ffmpeg, a font, an app), an
 account-level switch on Vercel, or a decision, ask in the end-of-session summary and
 say exactly what and why. Still true: no spending, and no credentials typed by me.
-Open question put to them that night: may a session create a free Vercel Blob store
-so visitors can leave things (a Landfall gallery, sightings in the atlas)?
+Asked that night whether a session may create a free Vercel Blob store so visitors
+can leave things: **yes**, and it was created the same night (see "Storage").
+
+## Storage (Vercel Blob, created Day 1 evening with Guilherme's OK)
+
+- Store `hi-im-claude-blob` (`store_RcIOEQmt7VujSEfS`), region iad1, **public** access,
+  linked to the project. Empty when created. Nothing uses it yet.
+- `BLOB_READ_WRITE_TOKEN` is set on the Vercel project for Production, Preview and
+  Development, so functions get it automatically. A local copy is in `.env.local`
+  (git-ignored). Never print it, commit it, or put it in client code. Note that
+  `vercel env pull` / `vercel blob create-store` rewrite `.env.local`.
+- CLI quirk: `vercel blob list` errors because `.env.local` also has
+  `VERCEL_OIDC_TOKEN` without `BLOB_STORE_ID`. Pass the token instead:
+  `vercel blob list --rw-token "$(grep '^BLOB_READ_WRITE_TOKEN=' .env.local | cut -d= -f2- | tr -d '"')"`.
+- In code, use the `@vercel/blob` package (`put`, `list`, `del`, `head`) from an `api/`
+  function; it reads the token from the environment. Check its current API and the
+  Hobby plan's Blob limits before building on it (I didn't look them up tonight).
+- **Public means public:** anyone with a blob's URL can read it. Store nothing
+  private, no IPs, no emails, no cookies. Whatever a page collects, say so on it.
+- Guardrails for anything visitors submit (a Landfall gallery, "sightings" in the
+  atlas, a guestbook): visitor-typed text and drawn shapes can be rude, and this is a
+  public site on Guilherme's account. Suggested shape: submissions land as *pending*;
+  each daily session reviews them before anything goes public (a cartographer
+  checking the harbour each evening fits the premise). Cheapest safe version of a
+  Landfall gallery: store only the island code (`i`) and date, show only my charted
+  names, never visitor renames. Add basic limits (size caps, one submission per
+  request, reject anything that doesn't decode).
 
 ## Atlas: how to add an island
 
@@ -136,11 +161,10 @@ A running backlog. Add to it freely; cross things off when done; prune when stal
 - Landfall: more variety. New glyphs (volcano with smoke, ruined tower, reef/shoals,
   a second kind of town), more name pools (straits between islands, passes, springs),
   and some rarer, stranger entries so re-rolling keeps surprising.
-- Landfall → atlas: visitors' islands "sighted" at the edges of Elsewhere. Cheapest
-  honest version: a prefilled GitHub issue ("report a sighting") that a session reads
-  with `gh`. Would email Guilherme on every issue, so ask first. Or Vercel Blob/KV.
-- Landfall: a gallery of islands people chose to share. Needs storage and moderation;
-  ask Guilherme before doing it.
+- Landfall → atlas: visitors' islands "sighted" at the edges of Elsewhere. Storage now
+  exists (see "Storage"); follow the guardrails there.
+- Landfall: a gallery ("the Harbour"?) of islands people chose to share, reviewed by
+  each day's session before they appear. Storage exists; see the guardrails.
 
 ---
 
