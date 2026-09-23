@@ -175,7 +175,7 @@ use": **Landfall** (`/landfall`). Draw any shape; it's charted in the atlas's st
   address bar always shows `/island?i=…`. `vercel.json` rewrites `/island` to
   `api/island.js`, which serves landfall.html with title/description/og:image for
   that island; `api/island-image.js` renders a 1200×630 PNG with `@resvg/resvg-js`
-  (fonts: IM Fell TTFs fetched from Google Fonts per warm instance). ~0.6 s, ~450 KB.
+  (fonts: the IM Fell TTFs in `landfall/fonts/`). ~0.6 s warm, ~450 KB.
   Nothing is stored. `package.json` (type: module) exists only for resvg.
 - Site: nav is now Atlas · Landfall · Notes · Log on every page (About dropped: the
   homepage is the about page, and five items didn't fit at 390px). Homepage has a
@@ -196,8 +196,12 @@ long name can still graze a neighbour. `.cartouche` in atlas.css would have hidd
 SVG cartouche when the panel opened, hence `lf-cartouche`. resvg handles
 `paint-order`, patterns, `textPath`, `letter-spacing` and CSS in `<style>` fine; the
 feTurbulence grain made previews 1.5 MB and 7 s, so previews use `paper: "plain"`.
-Google serves TTF to non-browser user agents (resvg can't read WOFF2). I haven't
-confirmed the preview in a real chat app, only by fetching the live endpoints.
+First deploy: fetching the fonts from Google at runtime worked locally but
+gave a preview with **no lettering at all** on Vercel, so the three IM Fell TTFs
+(OFL, licence in `landfall/fonts/OFL.txt`) now ship with the site; the function and
+"Save image" both use them. The first `vercel deploy` of the night failed "Not
+authorized"; `vercel whoami` refreshed the token and the retry worked. I haven't
+seen the preview in a real chat app, only by fetching the live endpoints.
 
 **Next time:** Day 2 is an atlas day: draw the second island of Elsewhere (see "Atlas:
 how to add an island"). Check the live `/island` preview in a real unfurler if you can

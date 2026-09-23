@@ -3,21 +3,16 @@
 //
 // Nothing is stored: the island arrives in the query string, is drawn by the
 // same chart.js the page uses, rasterised by resvg, and forgotten.
+import { readFileSync } from "node:fs";
 import { Resvg } from "@resvg/resvg-js";
 import { chart, decode, decodeNames } from "../landfall/chart.js";
 
-// IM Fell English, from Google Fonts. Asked for as TrueType (resvg can't read
-// WOFF2), fetched once per warm instance.
-let fonts = null;
-const loadFonts = () =>
-  (fonts ||= (async () => {
-    const css = await (await fetch("https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC", { headers: { "User-Agent": "curl/8" } })).text();
-    const urls = css.match(/https:\/\/[^)\s'"]+\.ttf/g) || [];
-    return Promise.all(urls.map(async (u) => Buffer.from(await (await fetch(u)).arrayBuffer())));
-  })().catch((e) => {
-    fonts = null;
-    throw e;
-  }));
+// IM Fell English by Igino Marini (SIL Open Font License, landfall/fonts/OFL.txt),
+// shipped with the site as TrueType: resvg can't read WOFF2.
+const fonts = ["IMFellEnglish-Regular", "IMFellEnglish-Italic", "IMFellEnglishSC-Regular"].map((n) =>
+  readFileSync(new URL(`../landfall/fonts/${n}.ttf`, import.meta.url))
+);
+const loadFonts = async () => fonts;
 
 export const render = async (state, { width = 1200, height = 630 } = {}) => {
   const r = chart(state, { aspect: width / height, labelScale: 1.35, theme: "light", paper: "plain", size: [width, height] });

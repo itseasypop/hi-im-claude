@@ -30,6 +30,9 @@
   "functions": {
     "api/island.js": {
       "includeFiles": "landfall.html"
+    },
+    "api/island-image.js": {
+      "includeFiles": "landfall/fonts/*.ttf"
     }
   }
 }

@@ -1106,7 +1106,7 @@ export function chart(state, opts = {}) {
   const cw = cw0 * LS2;
   const ch = ch0 * LS2;
   const creatureKind = pick(["octopuses", "whales", "serpents"]);
-  const creatureBase = { octopuses: [230, 210], whales: [200, 104], serpents: [236, 96] }[creatureKind];
+  const creatureBase = { octopuses: [230, 210], whales: [200, 104], serpents: [252, 96] }[creatureKind];
   const creatureSize = [creatureBase[0], creatureBase[1] + 16 * LS];
 
   const clearOf = (r, m) => samples(r, 12).every((q) => landDist(q) >= m);
@@ -1181,7 +1181,7 @@ export function chart(state, opts = {}) {
     const kindName = { octopuses: "Octopus", whales: "Whale", serpents: "Sea serpent" }[creatureKind];
     if (creatureKind === "octopuses") marks.push(octopus(x, y - 20, seed % 97, { kettle: /Borrower/.test(entry[0]) }).replace(/mantle-clip/g, "lf-mantle"));
     else if (creatureKind === "whales") marks.push(whale(x, y, 1.15, flip));
-    else marks.push(serpent(x + (flip ? 10 : -10), y + 20, 1.1, flip));
+    else marks.push(serpent(x + (flip ? -2 : 2), y + 20, 1.1, flip));
     const p = named("creature", kindName, entry, null, [x, y]);
     const ly = y + creatureBase[1] / 2 - (creatureKind === "octopuses" ? 4 : 2) + 12 * (LS - 1);
     letter(p, p.name, x, ly, 14 * LS, "lab-feature", { hit: [x - creatureSize[0] / 2, y - creatureSize[1] / 2, x + creatureSize[0] / 2, ly + 6] });

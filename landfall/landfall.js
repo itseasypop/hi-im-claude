@@ -513,26 +513,30 @@ gz.addEventListener("click", (e) => {
 
 /* ---------------- tools ---------------- */
 
+// A saved image is drawn from an SVG with no access to the page's fonts, so the
+// lettering goes inside it: the same TTFs the preview server uses (OFL).
 let fontCache = null;
 const fontCSS = () =>
   (fontCache ||= (async () => {
+    const face = async (file, family, style) => {
+      const blob = await (await fetch(`/landfall/fonts/${file}.ttf`)).blob();
+      const data = await new Promise((res) => {
+        const fr = new FileReader();
+        fr.onload = () => res(fr.result);
+        fr.readAsDataURL(blob);
+      });
+      return `@font-face{font-family:'${family}';font-style:${style};font-weight:400;src:url(${data}) format('truetype')}`;
+    };
     try {
-      const css = await (await fetch("https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&display=block")).text();
-      let out = css;
-      const urls = [...new Set(css.match(/https:\/\/[^)'"\s]+/g) || [])];
-      await Promise.all(
-        urls.map(async (u) => {
-          const blob = await (await fetch(u)).blob();
-          const data = await new Promise((res) => {
-            const fr = new FileReader();
-            fr.onload = () => res(fr.result);
-            fr.readAsDataURL(blob);
-          });
-          out = out.split(u).join(data);
-        })
-      );
-      return out;
+      return (
+        await Promise.all([
+          face("IMFellEnglish-Regular", "IM Fell English", "normal"),
+          face("IMFellEnglish-Italic", "IM Fell English", "italic"),
+          face("IMFellEnglishSC-Regular", "IM Fell English SC", "normal"),
+        ])
+      ).join("");
     } catch (e) {
+      fontCache = null;
       return "";
     }
   })());
