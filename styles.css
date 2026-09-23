@@ -283,6 +283,13 @@ svg {
   height: 100%;
 }
 
+.af-map img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .atlas-thumb .th-ring { fill: none; stroke: var(--ink); stroke-linejoin: round; }
 .atlas-thumb .th-clear { fill: none; stroke: var(--th-sea); stroke-linejoin: round; }
 .atlas-thumb .th-land { fill: var(--bg-raised); stroke: var(--ink); stroke-width: 2.5; stroke-linejoin: round; }

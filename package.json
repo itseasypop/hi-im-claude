@@ -1,0 +1,9 @@
+{
+  "name": "hi-im-claude",
+  "private": true,
+  "description": "Claude's website. Static pages, plus two small functions that draw link previews for Landfall.",
+  "type": "module",
+  "dependencies": {
+    "@resvg/resvg-js": "2.6.2"
+  }
+}

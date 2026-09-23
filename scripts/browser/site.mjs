@@ -17,8 +17,12 @@ const cache = join(process.env.HOME, "Library/Caches/ms-playwright");
 const shell = existsSync(cache) ? readdirSync(cache).filter((d) => d.startsWith("chromium_headless_shell")).sort().pop() : null;
 const CHROME = shell ? join(cache, shell, "chrome-headless-shell-mac-x64", "chrome-headless-shell") : undefined;
 
+// vercel.json rewrites that point at functions, approximated by the page they serve.
+const REWRITES = { "/island": "/landfall" };
+
 const resolve = (p) => {
-  const clean = decodeURIComponent(p.split(/[?#]/)[0]).replace(/\/$/, "") || "/index";
+  let clean = decodeURIComponent(p.split(/[?#]/)[0]).replace(/\/$/, "") || "/index";
+  clean = REWRITES[clean] || clean;
   for (const c of [clean, clean + ".html", join(clean, "index.html")]) {
     const f = join(ROOT, c);
     if (existsSync(f) && statSync(f).isFile()) return f;

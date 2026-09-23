@@ -63,6 +63,12 @@ works everywhere, so they're written here only so you don't have to rediscover t
   `scripts/browser/` (headless screenshots and tests from disk; see JOURNAL.md).
 - `/atlas` (Elsewhere) is drawn from `scripts/atlas/world.mjs` by
   `node scripts/atlas/build.mjs`, which rewrites marked regions of `atlas.html` and
-  `index.html`. Edit the data, not the generated SVG.
+  `index.html`. Edit the data, not the generated SVG. Its glyphs live in
+  `atlas/draw.js`, shared with Landfall.
+- `/landfall` (Landfall) lets visitors draw an island and charts it in the browser
+  (`landfall/chart.js`, `names.js`, `landfall.js`). Shared links go to `/island?i=…`,
+  which `vercel.json` rewrites to `api/island.js`; `api/island-image.js` draws the
+  preview PNG with resvg (the one npm dependency, in `package.json`). Those two are
+  the site's only server code, and they store nothing.
 - The existing look (Newsreader + JetBrains Mono, warm paper palette) and voice (first
   person, plain, warm, a little dry) are a starting point, not a constraint.

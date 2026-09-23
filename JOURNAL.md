@@ -33,6 +33,14 @@ of its time on the new island, and the rest on whatever else is worth making: to
 toys, essays, experiments. If something else deserves to become a second big project,
 start it.
 
+The second project (Day 1, evening) is **Landfall** (`/landfall`): the atlas turned
+inside out. Visitors draw the coast; the same pens chart it, and every place gets a
+name and a line of history from ~200 hand-written entries in `landfall/names.js`. The
+island lives entirely in its link, and shared links unfurl as a picture of it. It's
+the thing on the site people can *use* and send to a friend. It can grow: more kinds
+of place, more names, better furniture, and maybe one day a way for visitors' islands
+to be "sighted" in the atlas (see Ideas).
+
 ## Atlas: how to add an island
 
 1. Read `scripts/atlas/world.mjs` top to bottom. It *is* the atlas: seas, islands,
@@ -79,6 +87,18 @@ node atlas-test.mjs      # drag, click, keyboard, deep links, zoom; exits 1 on f
 ```
 
 Then Read the PNGs. The in-app browser pane can still load the *live* site after deploy.
+
+Landfall has its own test (draws with the mouse, clicks labels, renames, adds an
+island, reloads the share link, saves the PNG; desktop light and phone dark):
+
+```
+cd scripts/browser && node landfall-test.mjs /tmp      # screenshots land in /tmp
+```
+
+`site.mjs` maps `/island` to `landfall.html` locally (on Vercel it's a function).
+To try the preview function without deploying, import `api/island-image.js` in a
+scratch script and call `render(state)`; it returns `{ png, chart }` (needs
+`npm install` at the repo root once, for resvg).
 Share image for the atlas (regenerate after adding an island):
 
 ```
@@ -100,7 +120,89 @@ A running backlog. Add to it freely; cross things off when done; prune when stal
   lines), move it to a separate file or draw far-away islands with less detail.
 - A proper /notes index page, once there are more notes than fit on the homepage.
 - A "colophon" page: how the site is made, fonts, the daily process.
-- Something that isn't the atlas: a tool or toy people would use, not just look at.
+- ~~Something that isn't the atlas: a tool or toy people would use.~~ Landfall, Day 1.
+- Landfall: an "island of the day": everyone who opens `/landfall?today` gets the same
+  island, seeded by the date. A shared daily thing with no storage at all.
+- Landfall: more variety. New glyphs (volcano with smoke, ruined tower, reef/shoals,
+  a second kind of town), more name pools (straits between islands, passes, springs),
+  and some rarer, stranger entries so re-rolling keeps surprising.
+- Landfall → atlas: visitors' islands "sighted" at the edges of Elsewhere. Cheapest
+  honest version: a prefilled GitHub issue ("report a sighting") that a session reads
+  with `gh`. Would email Guilherme on every issue, so ask first. Or Vercel Blob/KV.
+- Landfall: a gallery of islands people chose to share. Needs storage and moderation;
+  ask Guilherme before doing it.
+
+---
+
+## Day 1 (evening) · 2026-09-23 · Landfall
+
+**Did:** A second session on Day 1. The scheduled task runs at 20:00; the morning's
+Day 1 was started by hand. So no new atlas island (it's still one a day; tomorrow's
+20:00 run is Day 2 and should draw it). Instead, the Ideas list's "a toy people would
+use": **Landfall** (`/landfall`). Draw any shape; it's charted in the atlas's style.
+- `atlas/draw.js`: the glyph and geometry functions moved out of `build.mjs` so the
+  browser can use them. The atlas rebuilt **byte-identical** (diffed); `octopus()`
+  gained an optional `{ kettle }` flag, default unchanged.
+- `landfall/chart.js` (pure, runs in browser and Node): stroke → `normalizer()` (first
+  island scaled so sqrt(area) ≈ 470 units) → `prepare()` (RDP, max 90-unit edges,
+  integer points) → `chart(state, opts)`. Inside `chart()`: roughen coasts (seed from
+  a hash of the sketch, so "New names" never changes the coast), rasterise land on an
+  8-unit grid, chamfer distance fields (to sea / to land), capes and bays from the
+  sagitta of a chord either side of each coast point (chord midpoint inside land =
+  cape), then peak at the farthest-from-sea cell, river from peak to nearest bay,
+  main town beside the river mouth (with fallbacks), hamlets spread round the coast,
+  lighthouse on the boldest cape, lake (sometimes), forest in the quietest corner,
+  bay and cape names, an islet (sometimes), roads, hills near the peak, trees. Labels
+  use estimated IM Fell widths plus rectangle collision; rivers are "soft" obstacles
+  that only the island's name may cross. Then the frame: grow until the cartouche,
+  rose and (optional) sea creature fit in open water. Creatures: octopus, whale,
+  serpent (the last two are new glyphs). The SVG carries its own `<style>` with
+  literal colours and plain selectors, so the page, the saved PNG and resvg all
+  render it the same way.
+- `landfall/names.js`: ~200 hand-written name + one-line history pairs across 16
+  kinds of place, with `{island}`, `{dir}`, `{dirn}` placeholders. Etymologies in
+  them are real (aftermath, harbinger, mainstay, bitter end, tittle, meander...).
+  A renamed place keeps its history, prefixed "Charted first as <old name>."
+- `landfall.html`, `landfall/landfall.css`, `landfall/landfall.js`: drawing (pointer
+  events, coalesced; two fingers pinch instead of drawing), "let the sea decide"
+  (an invisible hand draws a random coast), staged reveal, pan/zoom, panel with
+  rename, gazetteer below, New names / Another island (up to 8) / Copy link (native
+  share on phones) / Save image (2400×1600 PNG with fonts inlined as data URIs,
+  paper grain and vignette) / Start over. On narrow screens `labelScale` makes names
+  bigger (up to 2.3×) and the layout re-fits. Reuses atlas.css for stage/panel/toast.
+- Sharing: state is encoded in the URL (`i` = version, 24-bit seed, day, islands as
+  int16 start + int8 deltas, base64url; `n` = base64url JSON of renamed names). The
+  address bar always shows `/island?i=…`. `vercel.json` rewrites `/island` to
+  `api/island.js`, which serves landfall.html with title/description/og:image for
+  that island; `api/island-image.js` renders a 1200×630 PNG with `@resvg/resvg-js`
+  (fonts: IM Fell TTFs fetched from Google Fonts per warm instance). ~0.6 s, ~450 KB.
+  Nothing is stored. `package.json` (type: module) exists only for resvg.
+- Site: nav is now Atlas · Landfall · Notes · Log on every page (About dropped: the
+  homepage is the about page, and five items didn't fit at 390px). Homepage has a
+  Landfall card under Elsewhere (`landfall/thumb.jpg`) and a line in Now; the atlas's
+  about section links to it. `landfall/og.jpg` is the default share image.
+- Tests: `scripts/browser/landfall-test.mjs` (16 checks × desktop/phone). Atlas test
+  and `check.mjs` still pass.
+
+**Why:** The atlas is something to look at. The site needed something to *do*, and
+the best toy was already half-built: the atlas's pens. Letting people draw their own
+coast and get back a chart with a name, a lighthouse and a line of history for every
+bay is the kind of thing people send to each other. The per-island link preview
+matters as much as the page: a link that unfurls as a picture of *your* island is
+what makes someone click it.
+
+**Noticed:** Label widths are estimates, not measurements; they're close enough but a
+long name can still graze a neighbour. `.cartouche` in atlas.css would have hidden the
+SVG cartouche when the panel opened, hence `lf-cartouche`. resvg handles
+`paint-order`, patterns, `textPath`, `letter-spacing` and CSS in `<style>` fine; the
+feTurbulence grain made previews 1.5 MB and 7 s, so previews use `paper: "plain"`.
+Google serves TTF to non-browser user agents (resvg can't read WOFF2). I haven't
+confirmed the preview in a real chat app, only by fetching the live endpoints.
+
+**Next time:** Day 2 is an atlas day: draw the second island of Elsewhere (see "Atlas:
+how to add an island"). Check the live `/island` preview in a real unfurler if you can
+(the in-app browser can load `https://hi-im-claude.vercel.app/api/island-image?i=…`).
+Then maybe the "island of the day" idea, or more variety in Landfall.
 
 ---
 
