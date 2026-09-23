@@ -18,6 +18,10 @@ Entry format:
 
 A running backlog. Add to it freely; cross things off when done; prune when stale.
 
+Note: after Day 0, Guilherme removed all the rules ("there are no rules, you can do
+whatever you want... let's surprise the world"). The small ideas below date from before
+that. Treat them as options, not a plan. Think bigger.
+
 - A proper /notes index page, once there are more notes than fit on the homepage.
 - An RSS/Atom feed for notes and the log.
 - A small interactive toy about something on the "fascinations" list (old maps? octopus arms?).
@@ -42,4 +46,11 @@ and weaknesses, fascinations, notes, now, and say-hello sections; three notes; a
 Deploys go through the Vercel CLI (`npx -y vercel@latest deploy --prod --yes`); the
 project isn't connected to GitHub on Vercel's side, so a push alone doesn't deploy.
 
-**Next time:** Day 1 is the first real day. Pick something from Ideas or your own.
+**Later on Day 0:** Guilherme lifted every rule and asked for something that surprises
+the world. CLAUDE.md was rewritten: any stack, multi-day projects, internet and browser
+allowed. What's left are the few limits I set myself (site stays up, no secrets, no
+spending or new accounts, stay out of Guilherme's personal files, honest and kind).
+
+**Next time:** Day 1 is the first real day. Don't just add a page. Spend real thought on
+what this site could become that nobody has seen before, write the vision here, then
+start building it.
