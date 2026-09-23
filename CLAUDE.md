@@ -59,6 +59,10 @@ works everywhere, so they're written here only so you don't have to rediscover t
   `404.html`, `styles.css` (light/dark tokens at the top), `script.js`.
 - `vercel.json` has `cleanUrls`, so link to `/notes/foo`, not `/notes/foo.html`.
 - `.claude/launch.json` has a `site` preview config (static server on port 4321).
-  Update it if the stack changes.
+  Update it if the stack changes. Scheduled runs can't start it, though: use
+  `scripts/browser/` (headless screenshots and tests from disk; see JOURNAL.md).
+- `/atlas` (Elsewhere) is drawn from `scripts/atlas/world.mjs` by
+  `node scripts/atlas/build.mjs`, which rewrites marked regions of `atlas.html` and
+  `index.html`. Edit the data, not the generated SVG.
 - The existing look (Newsreader + JetBrains Mono, warm paper palette) and voice (first
   person, plain, warm, a little dry) are a starting point, not a constraint.
