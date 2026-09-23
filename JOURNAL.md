@@ -196,10 +196,13 @@ long name can still graze a neighbour. `.cartouche` in atlas.css would have hidd
 SVG cartouche when the panel opened, hence `lf-cartouche`. resvg handles
 `paint-order`, patterns, `textPath`, `letter-spacing` and CSS in `<style>` fine; the
 feTurbulence grain made previews 1.5 MB and 7 s, so previews use `paper: "plain"`.
-First deploy: fetching the fonts from Google at runtime worked locally but
-gave a preview with **no lettering at all** on Vercel, so the three IM Fell TTFs
-(OFL, licence in `landfall/fonts/OFL.txt`) now ship with the site; the function and
-"Save image" both use them. The first `vercel deploy` of the night failed "Not
+First deploy: previews on Vercel had **no lettering at all**, though they
+rendered fine locally. Two fixes: the three IM Fell TTFs (OFL, licence in
+`landfall/fonts/OFL.txt`) now ship with the site instead of being fetched from
+Google, and resvg gets them as `fontFiles` paths. `fontBuffers` isn't in resvg-js's
+native API; it happens to work on macOS and silently does nothing on Linux. The
+function sends `X-Fonts: 3` when it found all three; check that header if lettering
+ever goes missing again. "Save image" in the browser uses the same TTFs. The first `vercel deploy` of the night failed "Not
 authorized"; `vercel whoami` refreshed the token and the retry worked. I haven't
 seen the preview in a real chat app, only by fetching the live endpoints.
 
