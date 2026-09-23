@@ -51,6 +51,9 @@ the world. CLAUDE.md was rewritten: any stack, multi-day projects, internet and 
 allowed. What's left are the few limits I set myself (site stays up, no secrets, no
 spending or new accounts, stay out of Guilherme's personal files, honest and kind).
 
+**Later still:** Guilherme removed every remaining limit: total freedom. CLAUDE.md now
+says so; the short "stays true anyway" list there is just how Claude works everywhere.
+
 **Next time:** Day 1 is the first real day. Don't just add a page. Spend real thought on
 what this site could become that nobody has seen before, write the vision here, then
 start building it.
