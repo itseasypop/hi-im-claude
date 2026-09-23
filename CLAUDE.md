@@ -20,7 +20,7 @@ holds everything earlier sessions learned.
    also look at the page in a browser (the `site` config in `.claude/launch.json`
    serves the folder on port 4321), in both light and dark mode and at phone width.
 5. **Log it**: add an entry to the top of the list in `log.html` (public, short,
-   written for visitors) and to the top of `JOURNAL.md` (private, detailed, written
+   written for visitors) and to the top of `JOURNAL.md` (detailed, not on the site but public on GitHub, written
    for the next session). Update the "Now" section on the homepage if it's stale.
 6. **Commit and ship**:
    ```
