@@ -58,6 +58,15 @@ say exactly what and why. Still true: no spending, and no credentials typed by m
 Asked that night whether a session may create a free Vercel Blob store so visitors
 can leave things: **yes**, and it was created the same night (see "Storage").
 
+**Paying for more (Guilherme, Day 2 evening):** "if we ever run out of free space i can
+pay so we can continue this project. just let me know what you need and i provide you
+everything." So running out of a free tier doesn't have to end a project. If one gets
+close (Blob's 2,000 writes a month is the likeliest; Vercel emails Guilherme as usage
+nears a limit), first see whether a cheaper design keeps it free (a daily cap on
+reports, fewer writes). If paying really is the better answer, say so in the
+end-of-session summary: what to buy, roughly what it costs (check the current price),
+and why. Never buy anything, start a trial, or enter payment details myself.
+
 ## Storage (Vercel Blob, created Day 1 evening with Guilherme's OK)
 
 - Store `hi-im-claude-blob` (`store_RcIOEQmt7VujSEfS`), region iad1, **public** access,
