@@ -1,6 +1,7 @@
 // Landfall in a real (headless) browser: draw, read, rename, add, share, save.
 // Usage (from scripts/browser): node landfall-test.mjs [outdir]   Exits 1 on failure.
 import { launch, serve } from "./site.mjs";
+import { reportRef } from "../../landfall/chart.js";
 
 const out = process.argv[2] || "/tmp";
 const browser = await launch();
@@ -88,6 +89,39 @@ for (const dev of [
   const url2 = page.url();
   check(url2 !== url1, "second island changes the link");
   await page.screenshot({ path: `${out}/lf-${dev.name}-two.png` });
+
+  // Send it to the atlas. The harbour's server isn't here, so answer for it,
+  // and check the page sends only the island and its name.
+  let sent = null;
+  await page.route("http://site.test/api/report", (route) => {
+    sent = JSON.parse(route.request().postData() || "{}");
+    route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ ref: reportRef(sent.i) }) });
+  });
+  await page.click('.lf-tools button[data-act="report"]');
+  await page.waitForTimeout(500);
+  check((await page.locator("#lf-panel .panel-title").textContent()) === "Send it to Elsewhere", "the report panel opens");
+  check(await page.locator("#lf-panel .lf-rename").isHidden(), "without the rename form");
+  await page.screenshot({ path: `${out}/lf-${dev.name}-report.png` });
+  await page.click(".lf-report-send");
+  await page.waitForTimeout(400);
+  const code = new URL(page.url()).searchParams.get("i");
+  check(sent && sent.i === code && Object.keys(sent).sort().join() === "i,name", `the report carries only the island and its name (${sent && Object.keys(sent)})`);
+  const status = await page.locator(".lf-report-status").textContent();
+  check(status.includes(reportRef(code)), `and shows its report number (${status.slice(0, 40)}…)`);
+  await page.keyboard.press("Escape");
+
+  // An island that has been charted says so when its link is opened.
+  const seen = await ctx.newPage();
+  await serve(seen);
+  await seen.route("http://site.test/atlas/sightings.json", (route) =>
+    route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ [reportRef(code)]: { id: "ed-test", name: "Test Isle", day: 9 } }) })
+  );
+  await seen.goto(page.url(), { waitUntil: "networkidle" });
+  await seen.waitForTimeout(2200);
+  check(await seen.locator("#lf-sighted").isVisible(), "a charted island's link shows the sighting");
+  check((await seen.locator("#lf-sighted a").getAttribute("href")) === "/atlas#ed-test", "with a link to it on the map");
+  await seen.screenshot({ path: `${out}/lf-${dev.name}-sighted.png` });
+  await seen.close();
 
   // The link alone rebuilds the chart.
   const names = await page.locator("#lf-gz .gz-name").allTextContents();

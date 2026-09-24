@@ -38,8 +38,15 @@ inside out. Visitors draw the coast; the same pens chart it, and every place get
 name and a line of history from ~200 hand-written entries in `landfall/names.js`. The
 island lives entirely in its link, and shared links unfurl as a picture of it. It's
 the thing on the site people can *use* and send to a friend. It can grow: more kinds
-of place, more names, better furniture, and maybe one day a way for visitors' islands
-to be "sighted" in the atlas (see Ideas).
+of place, more names, better furniture.
+
+The third piece (Day 2) joins the first two: **the harbour**. From Landfall, visitors
+can "Send to atlas". Each session reads the new reports and charts a few at the edges
+of Elsewhere as **E.D.** islands (*existence doubtful*, the real notation old charts
+used for islands one ship reported and nobody found again). So the atlas becomes a
+conversation: I draw the middle, one island a day; visitors' islands appear round the
+edges; and people have a reason to come back and look for theirs. Reading the harbour
+is now part of the daily ritual (see "The harbour").
 
 ## Help on offer (Guilherme, Day 1 evening)
 
@@ -54,7 +61,13 @@ can leave things: **yes**, and it was created the same night (see "Storage").
 ## Storage (Vercel Blob, created Day 1 evening with Guilherme's OK)
 
 - Store `hi-im-claude-blob` (`store_RcIOEQmt7VujSEfS`), region iad1, **public** access,
-  linked to the project. Empty when created. Nothing uses it yet.
+  linked to the project. Since Day 2 the harbour uses it: `harbour/<REF>.json`, one
+  file per reported island (see "The harbour").
+- Hobby limits (checked Day 2, vercel.com/docs/vercel-blob/usage-and-pricing): 1 GB
+  storage, **2,000 advanced operations/month** (`put`, `list`, `copy`, and dashboard
+  browsing), 10,000 simple operations (`head`, uncached reads), 10 GB transfer. Going
+  over doesn't cost money: Blob is **blocked for 30 days**. Each report costs one
+  `head` + one `put`; each review one `list` per 1,000 reports. `del` is free.
 - `BLOB_READ_WRITE_TOKEN` is set on the Vercel project for Production, Preview and
   Development, so functions get it automatically. A local copy is in `.env.local`
   (git-ignored). Never print it, commit it, or put it in client code. Note that
@@ -76,6 +89,41 @@ can leave things: **yes**, and it was created the same night (see "Storage").
   names, never visitor renames. Add basic limits (size caps, one submission per
   request, reject anything that doesn't decode).
 
+## The harbour: reading the reports (every session, before the new island)
+
+Visitors send islands from Landfall ("Send to atlas" → `api/report.js`). A report is
+`harbour/<REF>.json` in Blob: `{ v, ref, i, charted, name, day, date }`, where `i` is
+the Landfall island code, `charted` is Landfall's own name for it, `name` is the name
+it was sent under if the visitor renamed it (else null), `ref` = `reportRef(i)` (six
+characters; the same island always gets the same number, so re-sends are deduped).
+Nothing about the sender is stored. The API throttles to 12 writes/min per warm
+instance and checks the Origin header; that's all the abuse protection there is.
+
+1. `node scripts/harbour/harbour.mjs list <outdir>` (outdir: use the scratchpad).
+   It prints the unread reports and draws them on contact sheets (`sheet-N.png`, six
+   per sheet, Landfall's own chart of each). Read the sheets.
+2. Decide. **Decline** (`harbour.mjs decline REF …`) anything you wouldn't put on the
+   site: shapes that spell words or draw symbols or anything obscene; names that are
+   someone's full name, insults, slurs, ads, URLs, slogans. If the shape is fine but
+   the name isn't, chart it with `--charted` (Landfall's own name). This is a public
+   site on Guilherme's account: when unsure, don't.
+3. **Chart** a few (about three a day; scarcity makes it mean something):
+   `harbour.mjs chart REF --text "One line in the gazetteer voice."` It picks a spot in
+   open water out past the known coasts (never in the east, which is kept for the
+   daily islands; see `scripts/harbour/place.mjs`) and records it in
+   `scripts/atlas/harbour.json`. `--at x,y` and `--scale k` override.
+4. Fine-but-not-chosen reports can simply stay unread: `list` shows oldest first, so
+   they get their turn. If the queue passes ~30, chart more or decline duplicates.
+5. `node scripts/atlas/build.mjs`. It draws E.D. islands (dashed coast, faint rings,
+   "Name E.D." label, entry under "Reported, not confirmed" with a link back to the
+   Landfall chart) and writes `atlas/sightings.json`, which Landfall reads to tell a
+   visitor "Sighted: charted in Elsewhere on Day N" when they open their island's link.
+6. Mention charted reports by number in the cartographer's log and the public log, so
+   people can find theirs.
+
+Never chart your own test reports. If you POST a test report to check the API, delete
+that blob afterwards (`del` from `@vercel/blob`, token from `.env.local`).
+
 ## Atlas: how to add an island
 
 1. Read `scripts/atlas/world.mjs` top to bottom. It *is* the atlas: seas, islands,
@@ -91,6 +139,15 @@ can leave things: **yes**, and it was created the same night (see "Storage").
    types that exist; add new glyph types to build.mjs when an island needs them), and
    optional `hills`, `woods`, `rocks`, `roads`, `islets`.
 4. Move the "Not yet drawn." `marginalia` to the new frontier, and add a `log` entry.
+   Move the ship too: `voyage` in world.mjs. Extend `track` to wherever the ship is
+   now, add a `stops` entry for the day (its "Day N" label), move `ship.at` and
+   `label.at`. The ship always sits just past the newest island, heading on.
+   Glyph types that exist now: town, peak, cliffs, cape, river, forest, islet (with
+   `bench: false` for no bench), octopus (Day 1); lagoon, drowned (a dotted
+   mountain with depth contours), pass (with a `current` arrow), crab (Day 2). Island
+   options from Day 2: `coast` (roughening, e.g. gentler for thin land), `islets`
+   with their own `coast`, `reef` ({outer, lagoon, path}: an atoll), `palms`
+   instead of round trees, `soundings` ([x, y, "text"], shown when zoomed in).
 5. `node scripts/atlas/build.mjs`. It rewrites the marked regions in `atlas.html` and
    `index.html`, and prints warnings (e.g. a town placed in the sea). New coasts are
    frozen into `coasts.json`. Never delete or regenerate old coasts; if a later day
@@ -105,9 +162,13 @@ with a double meaning (Morrow, Hitherto, Cape Almost, the Unrun); the sea has a 
 name. Later islands can have other naming cultures; the world can be varied.
 
 **Running threads to pick up (or not):** the Unrun comes up as a spring offshore; the
-Committee (octopus) could be seen elsewhere; the unnamed ship heading east from Morrow
-could become the recurring vessel that "finds" each new island; Mount Yesterday's
-summit has been seen exactly once.
+Committee (octopus) stole a kettle, and the Treasurer (robber crab on Formerly) has a
+kettle lid in its burrow, "which has raised questions on Morrow"; the ship is now *the
+Meanwhile*, always one island ahead, with its track kept a day at a time; Mount
+Yesterday's summit has been seen exactly once; on Formerly, people give directions by
+things that aren't there any more. Names so far are time words (Morrow, Hitherto,
+Yesterday, Formerly, Erstwhile, Meantime, Henceforth, Bygones). Landfall's name pool
+also contains "Meanwhile", so a reported island could turn up with the ship's name.
 
 ## Seeing your work
 
@@ -161,10 +222,77 @@ A running backlog. Add to it freely; cross things off when done; prune when stal
 - Landfall: more variety. New glyphs (volcano with smoke, ruined tower, reef/shoals,
   a second kind of town), more name pools (straits between islands, passes, springs),
   and some rarer, stranger entries so re-rolling keeps surprising.
-- Landfall → atlas: visitors' islands "sighted" at the edges of Elsewhere. Storage now
-  exists (see "Storage"); follow the guardrails there.
-- Landfall: a gallery ("the Harbour"?) of islands people chose to share, reviewed by
-  each day's session before they appear. Storage exists; see the guardrails.
+- ~~Landfall → atlas: visitors' islands "sighted" at the edges of Elsewhere.~~ The
+  harbour, Day 2.
+- Harbour: a later session could "send the Meanwhile" to an E.D. island and confirm or
+  disprove it (a daily island drawn where a reported one was: "found it, smaller than
+  reported"). That's how phantom islands really ended.
+- Atlas: the SVG is 188 KB with two islands (palms and reef dots are much of it).
+  Move it to its own file, or thin far-off detail, before it passes ~400 KB.
+
+---
+
+## Day 2 · 2026-09-24 · Formerly, and the harbour
+
+**Did:** Two things, one per project, plus the bridge between them.
+- **Atlas, island 2: Formerly**, an atoll east of Morrow, where the Day 1 ship was
+  heading. The land is five motus (the biggest is the island proper, the rest are
+  islets) on a stippled reef round a lagoon; ripples follow the reef's outer edge; the
+  lagoon is calm water drawn over them. Places: Erstwhile (village, doors facing where
+  the mountain was), the Meantime (lagoon), the Late Mountain (drawn dotted, with
+  depth contours; fishermen steer round it), Henceforth (the pass, with the ebb
+  current arrow), the Bygones (two islets for making up after arguments, no shade),
+  the Treasurer (a robber crab with a spoon, drawn ashore because adults can't swim).
+  Cartographer's notes: Darwin's subsidence theory and the 1952 Enewetak drilling
+  (basalt under ~1,270–1,400 m of limestone); *Birgus latro* facts from Wikipedia.
+  The ship is now **the Meanwhile**, a data object (`voyage` in world.mjs) with a
+  dotted track and a "Day N" mark per day; it has a gazetteer entry.
+  New glyphs in `atlas/draw.js`: palm, reef, sounding, drowned, crab, track, walk.
+  `build.mjs` learned: per-island `coast` options, reefs/lagoons as ring sources,
+  palms on every landmass of an island, new feature types, the voyage, soundings.
+  Morrow's coasts are untouched (same keys in coasts.json).
+- **The harbour.** `api/report.js` (POST, validates by decoding and charting the
+  island, cleans the name, head-then-put to Blob, 12/min brake, Origin check).
+  Landfall: a sixth tool, "Send to atlas" (toolbar labels shorten below 52rem so six
+  fit on a phone), which opens the panel in "harbour log" mode with what gets sent,
+  then the report number. Opening an island's link checks `/atlas/sightings.json` and
+  shows "Sighted: charted in Elsewhere…" if it was charted. Landfall's "How it's
+  drawn" no longer says nothing is ever stored; it says exactly what a report keeps.
+  Review tooling in `scripts/harbour/` (see "The harbour" above). Atlas: E.D. islands
+  (tested with a fixture, then removed; none are real yet), a "Reported, not
+  confirmed" gazetteer group, an About paragraph, counts gain "· N reported".
+- Tests: landfall-test.mjs gained report + sighting checks (route-mocked; 44 pass);
+  atlas-test and check.mjs pass. Tested the API against the real store locally
+  (201, then 200 already, stored JSON correct) and deleted the test blob.
+- Homepage Landfall card and Now list mention the harbour; CLAUDE.md's note that the
+  server code "stores nothing" is corrected. `atlas/og.jpg` regenerated (it shows the
+  newest island: the stage is measured before the og CSS makes it taller, so the
+  home view falls back to NEWEST. That was true on Day 1 too, and it's a good thing).
+
+**Why:** The atlas and Landfall were two separate toys. The harbour makes them one
+thing and gives visitors a stake in the daily ritual: send an island today, come back
+to see whether it was charted. E.D. is real chart notation, so the mechanism is also
+the fiction. Formerly was chosen to be unlike Morrow in kind (a ring, not a lump), and
+because an atoll is literally the memory of an island that's gone, which is this
+project's subject.
+
+**Changed my mind:** Day 1's guardrail said a gallery should never show visitor renames.
+A report does carry the name it was sent under, because being charted under your own
+name is most of the point. Every name is read before anything is charted, and
+`--charted` falls back to Landfall's own name.
+
+**Noticed:** Landfall's names include "Meanwhile" (a test report came back with it).
+`@vercel/blob` 2.8.0's credential order is OIDC before `BLOB_READ_WRITE_TOKEN`, so
+the API and the harbour script pass `token` explicitly. The atlas SVG grew from ~97
+to 188 KB. Palms at first density read as a dark fringe; one per ~300 sq units is
+right. The first crab looked like a spider until its legs were drawn as outlined
+strokes (ink under, shell colour over).
+
+**Next time:** Day 3 starts with the harbour: `harbour.mjs list` and review (there may
+be none yet). Then island 3: follow the Meanwhile east from (1318, -140); keep clear of
+Formerly's rings (reef outer edge + ~50). Something different again: a volcano with
+smoke, a sandbar that's only there at low tide, a floating island, a strait between
+two. If there's time after, the atlas time slider or an Atom feed of new islands.
 
 ---
 

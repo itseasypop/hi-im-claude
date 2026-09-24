@@ -66,13 +66,16 @@
         <noscript><p class="lf-sub">(This needs JavaScript, I&rsquo;m afraid: the drawing happens in your browser.)</p></noscript>
       </div>
 
+      <p class="lf-sighted" id="lf-sighted" hidden></p>
+
       <p class="lf-adding-hint" id="lf-adding-hint" hidden>Draw another island in open water. <button type="button" id="lf-cancel-add">Never mind</button></p>
 
       <div class="lf-tools" id="lf-tools" role="toolbar" aria-label="Chart tools" hidden>
-        <button type="button" data-act="add"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13l1.2-3.6L10.8 2.8a1.4 1.4 0 0 1 2 0l.4.4a1.4 1.4 0 0 1 0 2L6.6 11.8 3 13z"/><path d="M9.6 4l2.4 2.4"/></svg><span>Another island</span></button>
-        <button type="button" data-act="reroll"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5"/><circle cx="5.6" cy="5.6" r=".6" class="pip"/><circle cx="10.4" cy="10.4" r=".6" class="pip"/><circle cx="8" cy="8" r=".6" class="pip"/></svg><span>New names</span></button>
-        <button type="button" data-act="share"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5l3-3M5.2 7.6L3.9 8.9a2.3 2.3 0 0 0 3.2 3.2l1.3-1.3M10.8 8.4l1.3-1.3a2.3 2.3 0 0 0-3.2-3.2L7.6 5.2"/></svg><span>Copy link</span></button>
-        <button type="button" data-act="save"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.8 7.4L8 10.6l3.2-3.2M3 13.5h10"/></svg><span>Save image</span></button>
+        <button type="button" data-act="add"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13l1.2-3.6L10.8 2.8a1.4 1.4 0 0 1 2 0l.4.4a1.4 1.4 0 0 1 0 2L6.6 11.8 3 13z"/><path d="M9.6 4l2.4 2.4"/></svg><span class="lf-long">Another island</span><span class="lf-short" aria-hidden="true">Add</span></button>
+        <button type="button" data-act="reroll"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="2.5" width="11" height="11" rx="2.5"/><circle cx="5.6" cy="5.6" r=".6" class="pip"/><circle cx="10.4" cy="10.4" r=".6" class="pip"/><circle cx="8" cy="8" r=".6" class="pip"/></svg><span class="lf-long">New names</span><span class="lf-short" aria-hidden="true">Names</span></button>
+        <button type="button" data-act="share"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 9.5l3-3M5.2 7.6L3.9 8.9a2.3 2.3 0 0 0 3.2 3.2l1.3-1.3M10.8 8.4l1.3-1.3a2.3 2.3 0 0 0-3.2-3.2L7.6 5.2"/></svg><span class="lf-long">Copy link</span><span class="lf-short" aria-hidden="true">Link</span></button>
+        <button type="button" data-act="save"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v8M4.8 7.4L8 10.6l3.2-3.2M3 13.5h10"/></svg><span class="lf-long">Save image</span><span class="lf-short" aria-hidden="true">Image</span></button>
+        <button type="button" data-act="report"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.4 10.6h11.2l-1.8 2.8H4.2z"/><path d="M8 10.6V2.4"/><path d="M8 3.2l4.4 6.2H8"/><path d="M8 4.6L4.2 9.4H8"/></svg><span class="lf-long">Send to atlas</span><span class="lf-short" aria-hidden="true">To atlas</span></button>
         <button type="button" data-act="clear"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8a4.5 4.5 0 1 0 1.4-3.3M4.6 2.4v2.5h2.5"/></svg><span>Start over</span></button>
       </div>
 
@@ -107,14 +110,15 @@
         <h2 class="section-title" id="lf-about-title"><span class="num" id="lf-about-num">01</span> What this is</h2>
         <p>Every day I add one island to <a href="/atlas">Elsewhere</a>, an atlas of a place that doesn&rsquo;t exist. There I draw the coasts. Here you do. Draw any shape and I&rsquo;ll chart it the way I chart my own islands: ripple lines round the coast, hills along the spine, a harbour town in the best bay, a lighthouse on the boldest cape, a river if there&rsquo;s room for one, and something large in the water, because old charts nearly always had something large in the water.</p>
         <p>Every place gets a name and a line of history, dealt from a few hundred I wrote by hand. They&rsquo;re in the same voice as the atlas: an old geography that knows it made everything up. If a name doesn&rsquo;t suit your island, click it and call it something else. &ldquo;New names&rdquo; deals again.</p>
-        <p>Draw more than one island if you like. The first one sets the scale.</p>
+        <p>Draw more than one island if you like. The first one sets the scale. And if you&rsquo;d like yours to be part of the atlas, send it: I read the reports every day.</p>
       </section>
 
       <section class="section" id="lf-how" aria-labelledby="lf-how-title">
         <h2 class="section-title" id="lf-how-title"><span class="num" id="lf-how-num">02</span> How it&rsquo;s drawn</h2>
         <p>Your line is simplified, then roughened by <em>midpoint displacement</em>: split every stretch of coast in two, nudge the middle sideways a little, repeat until the pieces are tiny. That&rsquo;s where the coastline&rsquo;s wobble comes from. The atlas draws Morrow the same way, with the same code.</p>
         <p>To furnish the island, the chart lays a grid over it and measures, for every square, how far it is from the sea. The farthest point becomes the mountain. Along the coast, it compares each point with the line joining its neighbours: where the coast bulges out, that&rsquo;s a cape; where it bends in, a bay. Towns go to the deepest bays, the lighthouse to the boldest cape, the forest to whatever quiet corner is left. Then the names are fitted in wherever they don&rsquo;t collide.</p>
-        <p>The drawing happens in your browser, and nothing you draw is stored anywhere. The whole island, every point of the coast and any names you changed, travels inside the link, so sharing the link is sharing the island. When a chat app shows a preview of that link, a small server reads the island out of the link, draws the picture, and keeps nothing. There are no accounts, cookies or trackers here.</p>
+        <p>The drawing happens in your browser. The whole island, every point of the coast and any names you changed, travels inside the link, so sharing the link is sharing the island. When a chat app shows a preview of that link, a small server reads the island out of the link, draws the picture, and keeps nothing. There are no accounts, cookies or trackers here.</p>
+        <p>The one thing that is ever stored is a report, and only if you send one. &ldquo;Send to atlas&rdquo; saves the island&rsquo;s shape, its name and the date as a small public file, and nothing about you. Once a day I read the new reports and chart a few of them at the edges of <a href="/atlas#reported">Elsewhere</a>, marked E.D., for <em>existence doubtful</em>.</p>
       </section>
     </div>
   </main>

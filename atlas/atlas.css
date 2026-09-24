@@ -19,6 +19,7 @@
   --map-tree: #e2e4c3;
   --map-cloud: #fdf9f0;
   --map-octo: #ecc6ac;
+  --map-lagoon: #e6e2c8;
   --paper-grain: 0.8;
   --paper-blend: multiply;
   --vignette: rgba(92, 58, 22, 0.2);
@@ -39,6 +40,7 @@
     --map-tree: #36402c;
     --map-cloud: #342e26;
     --map-octo: #5b3a2c;
+    --map-lagoon: #1d201d;
     --paper-grain: 0.35;
     --paper-blend: screen;
     --vignette: rgba(0, 0, 0, 0.45);
@@ -59,6 +61,7 @@
   --map-tree: #36402c;
   --map-cloud: #342e26;
   --map-octo: #5b3a2c;
+  --map-lagoon: #1d201d;
   --paper-grain: 0.35;
   --paper-blend: screen;
   --vignette: rgba(0, 0, 0, 0.45);
@@ -213,6 +216,35 @@
 .atlas-svg .flag { fill: var(--map-red); }
 .atlas-svg .wake { fill: none; stroke: var(--map-ink); stroke-width: 0.7; stroke-dasharray: 2 3; opacity: 0.45; }
 
+/* Formerly (Day 2): atoll, palms, reef, soundings, the drowned mountain, a crab, the ship's track */
+.atlas-svg .reef-flat { fill: var(--map-sea); }
+.atlas-svg .lagoon { fill: var(--map-lagoon); }
+.atlas-svg .reef-dots { fill: none; stroke: var(--map-ink); stroke-width: 1.5; stroke-linecap: round; opacity: 0.55; }
+.atlas-svg .reef-heads { stroke: var(--map-ink); stroke-width: 0.8; opacity: 0.7; }
+.atlas-svg .breakers { fill: none; stroke: var(--map-ink); stroke-width: 0.75; stroke-linecap: round; opacity: 0.45; }
+.atlas-svg .palm-trunk { fill: none; stroke: var(--map-ink); stroke-width: 0.95; stroke-linecap: round; }
+.atlas-svg .palm-frond { fill: var(--map-tree); stroke: var(--map-ink); stroke-width: 0.6; stroke-linejoin: round; }
+.atlas-svg .ghost .mtn-body,
+.atlas-svg .ghost .mtn-shade { display: none; }
+.atlas-svg .ghost .mtn-line,
+.atlas-svg .ghost .mtn-foot { stroke: var(--map-river); stroke-dasharray: 2 3; opacity: 0.8; }
+.atlas-svg .contour { fill: none; stroke: var(--map-river); stroke-width: 0.8; stroke-dasharray: 0.5 3.5; stroke-linecap: round; opacity: 0.8; }
+.atlas-svg .current-line { fill: none; stroke: var(--map-river); stroke-width: 1.1; stroke-dasharray: 5 3; stroke-linecap: round; }
+.atlas-svg .current-head { fill: none; stroke: var(--map-river); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
+.atlas-svg .crab-shell { fill: var(--map-octo); stroke: var(--map-ink); stroke-width: 0.8; stroke-linejoin: round; }
+.atlas-svg .crab-tail { fill: var(--map-octo); stroke: var(--map-ink); stroke-width: 0.7; }
+.atlas-svg .crab-leg { fill: none; stroke: var(--map-ink); stroke-width: 2.7; stroke-linecap: round; stroke-linejoin: round; }
+.atlas-svg .crab-leg-fill { fill: none; stroke: var(--map-octo); stroke-width: 1.2; stroke-linecap: round; stroke-linejoin: round; }
+.atlas-svg .crab-leg.arm { stroke-width: 3.6; }
+.atlas-svg .crab-leg-fill.arm { stroke-width: 2; }
+.atlas-svg .crab-mark { fill: none; stroke: var(--map-ink); stroke-width: 0.6; opacity: 0.6; }
+.atlas-svg .track-line { fill: none; stroke: var(--map-red); stroke-width: 1.1; stroke-dasharray: 1.4 4.2; stroke-linecap: round; opacity: 0.85; }
+.atlas-svg .track-stop { fill: var(--map-land); stroke: var(--map-red); stroke-width: 1.1; }
+
+/* Reported islands (E.D.): drawn from a report, never visited */
+.atlas-svg .ed-land { fill: var(--map-land); opacity: 0.75; }
+.atlas-svg .ed-coast { stroke-width: 1.1; stroke-dasharray: 3.5 2.4; stroke-linecap: round; }
+
 /* ---------- lettering ---------- */
 .atlas-svg .lab {
   font-family: var(--fell);
@@ -242,6 +274,13 @@
 .atlas-svg .lab-feature { --fs: 14px; font-style: italic; }
 .atlas-svg .lab-margin { font-style: italic; fill: var(--map-ink-soft); }
 .atlas-svg .lab-tiny { --fs: 7px; font-style: italic; fill: var(--map-ink-soft); }
+.atlas-svg .lab-water { --fs: 15px; fill: var(--map-river); letter-spacing: 0.04em; }
+.atlas-svg .lab-ghost { fill: var(--map-river); }
+.atlas-svg .lab-sounding { --fs: 9px; font-style: italic; fill: var(--map-ink-soft); }
+.atlas-svg .lab-track { --fs: 9px; font-style: italic; fill: var(--map-red); }
+.atlas-svg .lab-vessel .ship-name { font-style: italic; }
+.atlas-svg .lab-ed { --fs: 14px; font-style: italic; fill: var(--map-ink-soft); }
+.atlas-svg .lab-ed .ed-mark { font-style: normal; font-size: 0.72em; letter-spacing: 0.08em; fill: var(--map-red); }
 
 /* level of detail: small things appear as you come closer */
 .atlas-svg[data-lod="0"] .lod-1,
@@ -539,6 +578,13 @@
 .gz-text p:last-child { margin-bottom: 0 !important; }
 
 .atlas-text .log { margin-bottom: 0; }
+
+.gz-reported { margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--rule); }
+.gz-group-title { margin: 0 0 0.4rem; font-family: var(--fell); font-size: 1.9rem; font-weight: 400; line-height: 1.2; }
+.gz-reported > .gz-intro { max-width: 40rem; }
+.atlas-text abbr { text-decoration: none; font-variant: small-caps; letter-spacing: 0.04em; }
+.gz-empty { font-style: italic; color: var(--ink-soft); }
+.gz-report { font-size: 0.92em !important; color: var(--ink-soft); }
 
 /* no script: the map can't move, so say so and let the gazetteer do the work */
 html:not(.js) .atlas-controls,

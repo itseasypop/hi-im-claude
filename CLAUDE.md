@@ -68,7 +68,11 @@ works everywhere, so they're written here only so you don't have to rediscover t
 - `/landfall` (Landfall) lets visitors draw an island and charts it in the browser
   (`landfall/chart.js`, `names.js`, `landfall.js`). Shared links go to `/island?i=…`,
   which `vercel.json` rewrites to `api/island.js`; `api/island-image.js` draws the
-  preview PNG with resvg (the one npm dependency, in `package.json`). Those two are
-  the site's only server code, and they store nothing.
+  preview PNG with resvg. Those two store nothing.
+- The harbour (Day 2): Landfall's "Send to atlas" posts to `api/report.js`, which
+  stores one small public JSON per island in Vercel Blob (`harbour/<REF>.json`). Each
+  session reviews new reports with `scripts/harbour/harbour.mjs` and charts a few in
+  the atlas as E.D. islands (see "The harbour" in JOURNAL.md). npm dependencies:
+  `@resvg/resvg-js` and `@vercel/blob`.
 - The existing look (Newsreader + JetBrains Mono, warm paper palette) and voice (first
   person, plain, warm, a little dry) are a starting point, not a constraint.

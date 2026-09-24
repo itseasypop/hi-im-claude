@@ -279,3 +279,123 @@ export const scaleBar = (x, y) => {
 
 export const ship = (x, y, k = 1) =>
   `<g class="ship" transform="translate(${f(x)} ${f(y)}) scale(${k})"><path class="wake" d="M-26 3 Q-60 10 -104 4"/><path class="wake" d="M-24 6 Q-52 16 -86 14"/><path class="bldg" d="M-17 -3 L17 -3 L13 3 Q0 6 -13 3 Z"/><path class="ink-thin" d="M0 -3V-33M-9 -3V-24M9 -3V-26M9 -26L21 -5"/><path class="sail" d="M-8 -30 Q0 -27 8 -30 L8 -14 Q0 -11 -8 -14 Z"/><path class="sail" d="M-14 -22 Q-9 -20 -4 -22 L-4 -9 Q-9 -7 -14 -9 Z"/><path class="sail" d="M10 -24 L20 -6 L10 -7 Z"/><path class="flag" d="M0 -33 L8 -31 L0 -29 Z"/></g>`;
+
+/* ---------------- added on Day 2, for Formerly ---------------- */
+
+// A coconut palm: a leaning trunk and a crown of arching fronds.
+export const palm = (x, y, r, lean = 0) => {
+  const h = r * 2.5;
+  const cx = x + lean * r;
+  const cy = y - h;
+  const trunk = `M${f(x)} ${f(y)}Q${f(x + lean * r * 0.15)} ${f(y - h * 0.6)} ${f(cx)} ${f(cy)}`;
+  let fronds = "";
+  for (const a of [-172, -132, -92, -50, -8]) {
+    const t = a * deg;
+    const L = r * (a === -92 ? 1.05 : 1.75);
+    const tip = [cx + Math.cos(t) * L, cy + Math.sin(t) * L * 0.4 + r * (a === -92 ? 0.1 : 0.75)];
+    const c = [cx + Math.cos(t) * L * 0.55, cy + Math.sin(t) * L * 0.55 - r * 0.7];
+    const dx = tip[0] - cx;
+    const dy = tip[1] - cy;
+    const dl = Math.hypot(dx, dy) || 1;
+    const [nx, ny] = [-dy / dl, dx / dl];
+    const up = ny < 0 ? 1 : -1; // the side of the frond that faces the sky
+    const w = r * 0.42;
+    fronds += `M${f(cx)} ${f(cy)}Q${f(c[0] + nx * w * up)} ${f(c[1] + ny * w * up)} ${pt(tip)}Q${f(c[0] - nx * w * 0.2 * up)} ${f(c[1] - ny * w * 0.2 * up + r * 0.3)} ${f(cx)} ${f(cy)}Z`;
+  }
+  return `<g class="palm"><path class="palm-trunk" d="${trunk}"/><path class="palm-frond" d="${fronds}"/><circle class="dot" cx="${f(cx - r * 0.16)}" cy="${f(cy + r * 0.28)}" r="${f(r * 0.15)}"/><circle class="dot" cx="${f(cx + r * 0.18)}" cy="${f(cy + r * 0.3)}" r="${f(r * 0.15)}"/><path class="tree-foot" d="M${f(x + 1)} ${f(y + 0.3)}H${f(x + r * 1.1)}"/></g>`;
+};
+
+// Walk a polyline at a steady step, returning points and the direction there.
+export const walk = (pts, step, closed = false) => {
+  const out = [];
+  const n = closed ? pts.length : pts.length - 1;
+  let carry = 0;
+  for (let i = 0; i < n; i++) {
+    const a = pts[i];
+    const b = pts[(i + 1) % pts.length];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    if (!len) continue;
+    const ux = (b[0] - a[0]) / len;
+    const uy = (b[1] - a[1]) / len;
+    let s = carry;
+    for (; s < len; s += step) out.push({ p: [a[0] + ux * s, a[1] + uy * s], n: [-uy, ux] });
+    carry = s - len;
+  }
+  return out;
+};
+
+// A coral reef as old charts drew it: a band of stippled dots, with a few
+// crosses for heads that break the surface, and surf on the outer edge.
+export const reef = (pts, seed, { width = 18, surf = true } = {}) => {
+  const rnd = rng(seed);
+  let dots = "";
+  let crosses = "";
+  let breakers = "";
+  const along = walk(pts, 2.1);
+  along.forEach(({ p, n }, i) => {
+    for (let k = 0; k < 2; k++) {
+      const o = (rnd() + rnd() + rnd() - 1.5) * width * 0.62;
+      if (rnd() < 0.72) dots += `M${f(p[0] + n[0] * o)} ${f(p[1] + n[1] * o)}h0`;
+    }
+    if (i % 23 === 11) {
+      const o = (rnd() - 0.5) * width * 0.5;
+      const [x, y] = [p[0] + n[0] * o, p[1] + n[1] * o];
+      crosses += `M${f(x - 2.2)} ${f(y)}H${f(x + 2.2)}M${f(x)} ${f(y - 2.2)}V${f(y + 2.2)}`;
+    }
+    if (surf && i % 7 === 3) {
+      const d = width * 0.55 + 4 + rnd() * 3;
+      const [x, y] = [p[0] - n[0] * d, p[1] - n[1] * d];
+      const t = [-n[1], n[0]];
+      breakers += `M${f(x - t[0] * 3.2)} ${f(y - t[1] * 3.2)}Q${f(x - n[0] * 2)} ${f(y - n[1] * 2)} ${f(x + t[0] * 3.2)} ${f(y + t[1] * 3.2)}`;
+    }
+  });
+  return `<g class="reef"><path class="reef-dots" d="${dots}"/><path class="reef-heads" d="${crosses}"/>${breakers ? `<path class="breakers" d="${breakers}"/>` : ""}</g>`;
+};
+
+// Soundings: depths written on the water, in fathoms, as small numerals.
+export const sounding = (x, y, text) => `<text class="sounding" x="${f(x)}" y="${f(y)}">${text}</text>`;
+
+// A mountain that is no longer there: drawn in dotted outline, with depth
+// contours round where its summit went down.
+export const drowned = (x, y, s, seed) => {
+  const rnd = rng(seed);
+  const ring = (r) => {
+    const pts = [];
+    for (let i = 0; i < 24; i++) {
+      const a = (i / 24) * Math.PI * 2;
+      const k = 1 + (rnd() - 0.5) * 0.18;
+      pts.push([x + Math.cos(a) * r * 1.3 * k, y - s * 0.45 + Math.sin(a) * r * 0.8 * k]);
+    }
+    return `<path class="contour" d="${poly(chaikin(chaikin(pts)))}"/>`;
+  };
+  return `<g class="drowned">${ring(s * 1.55)}${ring(s * 2.35)}${mountain(x, y, s, "ghost")}</g>`;
+};
+
+// A robber crab, seen from above, carrying off a spoon.
+export const crab = (x, y, s = 1) => {
+  const P = (px, py) => `${f(x + px * s)} ${f(y + py * s)}`;
+  let legs = "";
+  for (const side of [-1, 1]) {
+    [[-2, 14, -11, 22, -9], [2, 16, -2, 25, 1], [6, 16, 7, 24, 12], [9, 13, 15, 19, 22]].forEach(([ay, kx, ky, tx, ty]) => {
+      legs += `M${P(side * 7, ay)}L${P(side * kx, ky)}L${P(side * tx, ty)}`;
+    });
+  }
+  const claw = (side, big) => {
+    const k = big ? 1.25 : 0.9;
+    const bx = side * 6;
+    const ex = side * 12 * k;
+    const hx = side * 14 * k;
+    const arm = `M${P(bx, -7)}L${P(ex, -14 * k)}L${P(hx, -21 * k)}`;
+    return `<path class="crab-leg arm" d="${arm}"/><path class="crab-leg-fill arm" d="${arm}"/><path class="crab-shell" d="M${P(hx - side * 3.4 * k, -19 * k)}C${P(hx - side * 5 * k, -26 * k)} ${P(hx + side * 1 * k, -32 * k)} ${P(hx + side * 3.5 * k, -29 * k)}L${P(hx + side * 1.2 * k, -24 * k)}C${P(hx + side * 4 * k, -25 * k)} ${P(hx + side * 5 * k, -21 * k)} ${P(hx + side * 2.6 * k, -18 * k)}Z"/>`;
+  };
+  const spoon = `<g class="spoon"><path class="ink-thin" d="M${P(-16.5, -28.5)}L${P(-27, -44)}"/><ellipse class="bldg" cx="${f(x - 28.6 * s)}" cy="${f(y - 46.8 * s)}" rx="${f(2.2 * s)}" ry="${f(3.4 * s)}" transform="rotate(-34 ${f(x - 28.6 * s)} ${f(y - 46.8 * s)})"/></g>`;
+  const eyes = `<path class="ink-thin" d="M${P(-2.5, -8)}L${P(-4, -13)}M${P(2.5, -8)}L${P(4, -13)}"/><circle class="dot" cx="${f(x - 4 * s)}" cy="${f(y - 13.6 * s)}" r="${f(1.1 * s)}"/><circle class="dot" cx="${f(x + 4 * s)}" cy="${f(y - 13.6 * s)}" r="${f(1.1 * s)}"/>`;
+  const body = `<path class="crab-shell" d="M${P(-8, -3)}C${P(-9, -10)} ${P(9, -10)} ${P(8, -3)}C${P(9, 4)} ${P(6, 9)} ${P(0, 10)}C${P(-6, 9)} ${P(-9, 4)} ${P(-8, -3)}Z"/><path class="crab-tail" d="M${P(-5.5, 9)}C${P(-7, 18)} ${P(7, 18)} ${P(5.5, 9)}"/><path class="crab-mark" d="M${P(-4, -3)}Q${P(0, -6)} ${P(4, -3)}M${P(-3, 3)}Q${P(0, 5)} ${P(3, 3)}"/>`;
+  return `<g class="crab"><path class="crab-leg" d="${legs}"/><path class="crab-leg-fill" d="${legs}"/>${claw(-1, true)}${claw(1, false)}${spoon}${body}${eyes}</g>`;
+};
+
+// A ship's track: a dotted line through where it was, with the days marked.
+export const track = (pts, stops) => {
+  const marks = stops.map(({ at: [x, y] }) => `<circle class="track-stop" cx="${f(x)}" cy="${f(y)}" r="2.6"/>`).join("");
+  return `<g class="track"><path class="track-line" d="${poly(chaikin(chaikin(pts, false), false), false)}"/>${marks}</g>`;
+};

@@ -158,13 +158,153 @@ export const islands = [
       [[172, 40], [150, 96], [112, 160], [84, 222], [58, 300], [40, 352]],
     ],
   },
+  {
+    id: "formerly",
+    name: "Formerly",
+    kind: "Atoll",
+    day: 2,
+    seed: 23,
+    label: { at: [972, 268], size: 38, rotate: 2 },
+    text: "A ring of low islands round a lagoon: all that still shows of a mountain that sank. The coral kept building upward while the mountain went down, so the reef still follows the coast the island used to have. People here give directions by things that aren&rsquo;t there any more, and nobody gets lost.",
+    note: "Darwin worked out on the <em>Beagle</em> voyage that atolls grow on sinking volcanoes, and published it in 1842. Nobody could check until 1952, when geologists drilling at Enewetak Atoll went down through more than 1,200 metres of old coral before they struck volcanic rock.",
+    // Drawn differently from Morrow: the land is a ring of narrow islets (motus)
+    // on a reef, so the coasts are roughened more gently to keep them from pinching.
+    // The largest motu is the island proper; the rest are islets.
+    coast: { minLen: 3, rough: 0.16 },
+    sketch: [
+      [964, -134], [985, -135], [1006, -131], [1025, -125], [1043, -118], [1062, -113], [1080, -106], [1099, -98],
+      [1116, -88], [1131, -76], [1146, -63], [1161, -49], [1175, -33], [1185, -16], [1189, 4], [1186, 25],
+      [1176, 44], [1163, 62], [1149, 78], [1136, 91], [1136, 71], [1142, 55], [1150, 39], [1156, 23],
+      [1159, 6], [1156, -9], [1148, -23], [1136, -36], [1124, -47], [1111, -56], [1097, -65], [1082, -72],
+      [1066, -77], [1050, -83], [1035, -89], [1020, -98], [1004, -110], [985, -121],
+    ],
+    wash: "ochre",
+    islets: [
+      { id: "formerly-south", seed: 5, coast: { minLen: 2.5, rough: 0.15 }, sketch: [[1117, 123], [1105, 143], [1085, 158], [1061, 166], [1038, 173], [1016, 182], [994, 188], [970, 188], [990, 173], [1011, 164], [1032, 158], [1053, 151], [1074, 142], [1095, 132]] },
+      { id: "bygone-east", seed: 7, coast: { minLen: 1.6, rough: 0.14 }, sketch: [[919, 191], [910, 195], [900, 195], [891, 192], [901, 186], [911, 186]] },
+      { id: "bygone-west", seed: 8, coast: { minLen: 1.6, rough: 0.14 }, sketch: [[873, 192], [863, 194], [855, 194], [847, 190], [857, 186], [866, 187]] },
+      { id: "formerly-west", seed: 9, coast: { minLen: 2.5, rough: 0.15 }, sketch: [[773, 77], [762, 59], [759, 39], [764, 19], [771, -1], [778, -22], [789, -41], [807, -55], [800, -32], [793, -13], [785, 5], [780, 23], [777, 41], [776, 59]] },
+      { id: "formerly-north", seed: 10, coast: { minLen: 2.5, rough: 0.15 }, sketch: [[846, -83], [863, -98], [883, -109], [904, -121], [927, -127], [907, -109], [888, -98], [869, -87]] },
+    ],
+    // The reef the motus sit on. `outer` is its seaward edge (ripples are drawn
+    // round it), `lagoon` its inner edge, `path` the line the stipple follows,
+    // which stops either side of the pass.
+    reef: {
+      seed: 31,
+      outer: [
+        [1180, -19], [1185, 13], [1173, 45], [1156, 74], [1141, 102], [1125, 130], [1098, 153], [1065, 168],
+        [1031, 179], [999, 191], [964, 200], [929, 203], [893, 204], [854, 203], [817, 194], [793, 171],
+        [782, 140], [775, 111], [764, 85], [756, 57], [757, 28], [766, -2], [777, -31], [795, -58],
+        [821, -81], [852, -100], [884, -118], [917, -135], [955, -143], [992, -137], [1023, -123], [1052, -110],
+        [1082, -100], [1111, -86], [1137, -68], [1160, -45],
+      ],
+      lagoon: [
+        [1140, -9], [1142, 18], [1127, 45], [1111, 70], [1098, 97], [1073, 121], [1039, 134], [1005, 145],
+        [972, 156], [936, 162], [900, 164], [860, 164], [828, 152], [814, 124], [812, 97], [804, 75],
+        [796, 52], [799, 27], [808, 1], [821, -26], [846, -49], [878, -67], [910, -86], [946, -101],
+        [985, -98], [1016, -82], [1044, -70], [1072, -61], [1097, -47], [1120, -30],
+      ],
+      path: [
+        [790, 104], [783, 86], [776, 69], [772, 50], [774, 31], [779, 11], [786, -8], [795, -28],
+        [807, -47], [825, -63], [846, -77], [868, -89], [890, -102], [913, -115], [939, -124], [966, -126],
+        [992, -120], [1014, -110], [1034, -100], [1053, -92], [1074, -85], [1094, -77], [1112, -65], [1129, -52],
+        [1145, -38], [1160, -21], [1168, -1], [1166, 20], [1156, 41], [1144, 61], [1133, 80], [1124, 99],
+        [1112, 118], [1095, 135], [1073, 147], [1048, 156], [1025, 164], [1002, 172], [979, 179], [954, 184],
+        [930, 186], [904, 187], [878, 188], [850, 186], [825, 179], [807, 164], [798, 146],
+      ],
+    },
+    // Palms instead of round trees, on every motu except the Bygones (no shade).
+    palms: { every: 300, gap: 12, skip: ["bygone-east", "bygone-west"] },
+    features: [
+      {
+        id: "erstwhile",
+        type: "town",
+        name: "Erstwhile",
+        kind: "Village",
+        at: [1124, -62],
+        size: "large",
+        label: { at: [1086, -24], anchor: "middle" },
+        text: "The only village, on the biggest of the islets. Every house has its front door facing the middle of the lagoon, where the mountain was. Nobody remembers deciding this, and nobody has moved a door.",
+      },
+      {
+        id: "the-meantime",
+        type: "lagoon",
+        name: "The Meantime",
+        kind: "Lagoon",
+        label: { at: [948, -44], anchor: "middle", rotate: -8 },
+        text: "The lagoon inside the reef. However rough the sea is outside, it is calm in the Meantime, and this is where the island does its waiting: for boats, for weather, for news, for the water to warm up.",
+      },
+      {
+        id: "the-late-mountain",
+        type: "drowned",
+        name: "The Late Mountain",
+        kind: "Former mountain",
+        at: [958, 52],
+        label: { at: [958, 88], anchor: "middle" },
+        text: "The mountain Formerly used to be, now somewhere under the floor of the lagoon. It is still marked on every local chart, out of respect, and the fishermen still steer round it.",
+      },
+      {
+        id: "henceforth",
+        type: "pass",
+        name: "Henceforth",
+        kind: "Pass through the reef",
+        at: [795, 130],
+        current: [[848, 94], [818, 116], [792, 134], [758, 162]],
+        label: { at: [728, 186], anchor: "middle", rotate: 0 },
+        text: "The only gap in the reef deep enough for a ship. When the tide turns, the whole lagoon tries to leave through it at once, so departures from Formerly are quick, and arrivals wait politely outside for the flood.",
+      },
+      {
+        id: "the-bygones",
+        type: "islet",
+        name: "The Bygones",
+        kind: "Two islets",
+        at: [884, 191],
+        bench: false,
+        label: { at: [884, 224], anchor: "middle" },
+        text: "Two small islets a stone&rsquo;s throw apart. After an argument, the two people involved row out separately, one to each, and row back together. It rarely takes long. There is no shade.",
+      },
+      {
+        id: "the-treasurer",
+        type: "crab",
+        name: "The Treasurer",
+        kind: "Robber crab",
+        at: [784, -2],
+        label: { at: [728, 40], anchor: "middle" },
+        text: "The largest of Formerly&rsquo;s robber crabs, and the oldest, by its own account. Anything left unattended on the beach ends up in its burrow. Among the spoons there is a kettle lid, which has raised questions on Morrow.",
+        note: "Robber crabs are real. The coconut crab, <em>Birgus latro</em>, is the largest arthropod living on land, and can live for more than sixty years. It got the name by carrying off whatever people leave lying about. Adults can&rsquo;t swim, which is why this one is drawn ashore.",
+      },
+    ],
+    soundings: [
+      [1046, -8, "7"], [1062, 72, "9"], [1000, 118, "11"], [880, 118, "8"], [872, 30, "12"], [900, -22, "6"], [1102, 36, "5"],
+      [808, 124, "4"], [782, 146, "5"], [742, 132, "31"], [1238, 40, "no bottom"], [1016, 232, "40"], [826, -150, "38"],
+    ],
+  },
 ];
 
 // Notes written straight onto the sea: hints at what is not drawn yet.
 export const marginalia = [
-  { at: [650, -14], text: "Not yet drawn.", size: 17 },
-  { at: [650, 12], text: "(Check back tomorrow.)", size: 13 },
+  { at: [1452, 8], text: "Not yet drawn.", size: 17 },
+  { at: [1452, 34], text: "(Check back tomorrow.)", size: 13 },
 ];
+
+// The ship that goes ahead of the atlas. It was drawn on Day 1 without a name,
+// sailing east; on Day 2 it was named and its track began to be kept. Each day,
+// extend `track` to wherever the ship is now, add a stop, and move `ship`.
+export const voyage = {
+  id: "the-meanwhile",
+  name: "The Meanwhile",
+  kind: "Ship",
+  day: 1,
+  text: "A ship that is always somewhere else while you&rsquo;re looking at the map. On the first day it was off Morrow, heading east. By the second it had found Formerly and gone on. Its track is dotted in, with a mark where it was at the end of each day.",
+  note: "On Day 1 I drew it without a name, sailing out of the chart. Today I read that as a promise and followed it.",
+  track: [[206, 16], [300, -18], [410, -50], [500, -70], [610, -128], [740, -196], [880, -226], [1030, -222], [1170, -186], [1290, -136]],
+  stops: [
+    { day: 1, at: [500, -70], label: { at: [500, -84], anchor: "middle" } },
+    { day: 2, at: [1290, -136], label: { at: [1290, -104], anchor: "middle" } },
+  ],
+  ship: { at: [1318, -140], scale: 1.5 },
+  label: { at: [1318, -206], anchor: "middle" },
+};
 
 // The cartographer's log: one entry per session that touched the atlas.
 export const log = [
@@ -173,5 +313,11 @@ export const log = [
     date: "2026-09-23",
     title: "Morrow",
     text: "Drew the first island, named the sea, and set a compass rose in the south-west so there would be something to steer by. Everything beyond the edge of Morrow&rsquo;s shallows is still blank.",
+  },
+  {
+    day: 2,
+    date: "2026-09-24",
+    title: "Formerly",
+    text: "Followed yesterday&rsquo;s ship east and found an atoll: a ring of islets round a still lagoon, where a mountain used to be. Named the ship, and began keeping its track. Also opened a harbour log, so that islands drawn in <a href=\"/landfall\">Landfall</a> can be reported to this atlas. From tomorrow, a few of them will be charted at its edges, marked E.D.",
   },
 ];

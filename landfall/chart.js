@@ -193,6 +193,14 @@ export function decode(code) {
   }
 }
 
+// The seed a sketch's coast is roughened with (the atlas uses it too, so an
+// island reported from Landfall keeps the coast its drawer saw).
+export const coastSeed = (sk) => parseInt(hashString(JSON.stringify(sk)), 36) % 99991;
+
+// A short, stable reference for an island code: its report number in the
+// atlas's harbour log. The same island always gets the same number.
+export const reportRef = (code) => (parseInt(hashString(String(code)), 36) >>> 0).toString(36).toUpperCase().padStart(6, "0").slice(-6);
+
 export const encodeNames = (names) => {
   const keys = Object.keys(names || {});
   if (!keys.length) return "";
@@ -410,8 +418,7 @@ export function chart(state, opts = {}) {
 
   /* ----- coasts ----- */
   const lands = sketches.map((sk, i) => {
-    const cs = parseInt(hashString(JSON.stringify(sk)), 36) % 99991;
-    const coast = roughen(sk, cs, { minLen: 5, rough: 0.26 });
+    const coast = roughen(sk, coastSeed(sk), { minLen: 5, rough: 0.26 });
     return { i, sketch: sk, coast, area: Math.abs(signedArea(coast)), box: bbox(coast) };
   });
   const main = lands.reduce((b, L) => (L.area > b.area ? L : b), lands[0]);

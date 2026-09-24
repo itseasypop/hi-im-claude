@@ -293,6 +293,8 @@ svg {
 .atlas-thumb .th-ring { fill: none; stroke: var(--ink); stroke-linejoin: round; }
 .atlas-thumb .th-clear { fill: none; stroke: var(--th-sea); stroke-linejoin: round; }
 .atlas-thumb .th-land { fill: var(--bg-raised); stroke: var(--ink); stroke-width: 2.5; stroke-linejoin: round; }
+.atlas-thumb .th-clear-fill { fill: var(--th-sea); }
+.atlas-thumb .th-lagoon { fill: var(--bg-raised); opacity: 0.55; stroke: var(--ink); stroke-width: 1.2; stroke-dasharray: 1 5; stroke-linecap: round; }
 .atlas-thumb .th-label {
   font-family: "IM Fell English SC", var(--serif);
   font-size: 58px;

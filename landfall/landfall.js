@@ -2,7 +2,7 @@
 // chart.js does the cartography (the same code runs on the server for link
 // previews). This file is the drawing surface, the view (pan and zoom), the
 // panel and gazetteer, and sharing.
-import { chart, emptySea, normalizer, prepare, encode, decode, encodeNames, decodeNames, today, randomShape, areaOf } from "./chart.js";
+import { chart, emptySea, normalizer, prepare, encode, decode, encodeNames, decodeNames, today, randomShape, areaOf, reportRef } from "./chart.js";
 import { inside } from "../atlas/draw.js";
 
 const $ = (s, el = document) => el.querySelector(s);
@@ -24,6 +24,7 @@ const renameForm = $(".lf-rename", panel);
 const renameInput = $("#lf-rename-input");
 const gzSection = $("#lf-gazetteer");
 const gz = $("#lf-gz");
+const sightedNote = $("#lf-sighted");
 
 const reduce = matchMedia("(prefers-reduced-motion: reduce)");
 const darkMQ = matchMedia("(prefers-color-scheme: dark)");
@@ -177,6 +178,7 @@ const syncUrl = () => {
   const n = encodeNames(state.names);
   // /island is the same page, served with a preview picture of this island (api/island.js).
   history.replaceState(null, "", `/island?i=${encode(state)}${n ? "&n=" + n : ""}`);
+  showSighted();
 };
 
 const renderGazetteer = () => {
@@ -217,6 +219,7 @@ const showEmpty = () => {
   Object.assign(view, { x: 0, y: 0, z: 1 });
   render();
   gzSection.hidden = true;
+  sightedNote.hidden = true;
   $("#lf-about-num").textContent = "01";
   $("#lf-how-num").textContent = "02";
   history.replaceState(null, "", "/landfall");
@@ -456,6 +459,7 @@ const open = (id, { move = true, focus = false } = {}) => {
     body += `<p class="panel-particulars">The coast is about ${result.coastLeagues.toLocaleString("en-GB")} leagues long, measured with a ruler ten leagues long. A shorter ruler would find it longer, because it would follow more of the wiggles. That&rsquo;s the coastline paradox, and it&rsquo;s real.</p>`;
   }
   panelBody.innerHTML = body;
+  renameForm.hidden = false;
   renameInput.value = p.name;
   panel.hidden = false;
   panel.scrollTop = 0;
@@ -510,6 +514,75 @@ gz.addEventListener("click", (e) => {
   stage.scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth", block: "center" });
   open(b.dataset.show);
 });
+
+/* ---------------- the harbour: reporting an island to the atlas ---------------- */
+
+// Islands already charted in Elsewhere, by report number (written by the atlas build).
+let sighted = null;
+const sightings = () =>
+  (sighted ??= fetch("/atlas/sightings.json", { cache: "no-cache" })
+    .then((r) => (r.ok ? r.json() : {}))
+    .catch(() => ({})));
+const reported = new Map(); // island code -> report number, for this visit
+
+const showSighted = async () => {
+  const code = state && encode(state);
+  const s = code && (await sightings())[reportRef(code)];
+  if (!s || !state || encode(state) !== code) return (sightedNote.hidden = true);
+  sightedNote.innerHTML = `Sighted: charted in Elsewhere on Day ${s.day} as <em>${esc(s.name)}</em>, E.D. <a href="/atlas#${esc(s.id)}">See it on the map</a>`;
+  sightedNote.hidden = false;
+};
+
+const openReport = async () => {
+  const code = encode(state);
+  const ref = reportRef(code);
+  const s = (await sightings())[ref];
+  panelKind.textContent = "The harbour log";
+  panelTitle.textContent = s ? "Already on the map" : "Send it to Elsewhere";
+  renameForm.hidden = true;
+  if (s) {
+    panelBody.innerHTML = `<p>This island was charted in <a href="/atlas#${esc(s.id)}">Elsewhere</a> on Day ${s.day}, as <em>${esc(s.name)}</em>, marked E.D.: existence doubtful. It&rsquo;s at the edge of the map, where reported islands go.</p>`;
+  } else {
+    const done = reported.has(code);
+    panelBody.innerHTML = `<p>Every day I add one island to <a href="/atlas">Elsewhere</a>, an atlas of a place that doesn&rsquo;t exist. Send this one, and I&rsquo;ll read the report when I next come back. A few reports each day are charted at the edge of the map, marked <abbr title="existence doubtful">E.D.</abbr>, for <em>existence doubtful</em>.</p>
+<p class="lf-report-row"><button type="button" class="lf-report-send">${done ? "Sent" : "Send the report"}</button> <span class="lf-report-status" role="status">${done ? `Report no. ${reported.get(code)} is in the harbour log.` : `Sends its shape, its name (<em>${esc(result.name)}</em>) and the date. Nothing about you.`}</span></p>
+<p class="panel-particulars">E.D. is what old charts wrote beside an island that one ship had reported and nobody had found again. Reports are kept as small public files, so only send a name you&rsquo;d be happy for anyone to read. There&rsquo;s no account, no email, nothing to track you by. I can&rsquo;t reply, and I can&rsquo;t chart them all.</p>`;
+    const btn = $(".lf-report-send", panelBody);
+    btn.disabled = done;
+    btn.addEventListener("click", () => sendReport(btn, code));
+  }
+  panel.hidden = false;
+  panel.scrollTop = 0;
+  stage.classList.add("has-panel");
+  svg?.querySelectorAll(".place.is-active").forEach((el) => el.classList.remove("is-active"));
+  activeId = null;
+  panelTitle.focus({ preventScroll: true });
+};
+
+const sendReport = async (btn, code) => {
+  const status = $(".lf-report-status", panelBody);
+  btn.disabled = true;
+  btn.textContent = "Sending…";
+  status.textContent = "";
+  try {
+    const r = await fetch("/api/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ i: code, name: result.name }),
+    });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok || !j.ref) throw new Error(j.error || "The harbour didn’t answer. Try again later?");
+    reported.set(code, j.ref);
+    btn.textContent = "Sent";
+    status.textContent = j.already
+      ? `This island was already reported. It’s report no. ${j.ref}.`
+      : `Report no. ${j.ref} is in the harbour log. If it’s charted, it’ll appear at the edge of the atlas under that number, and this island’s link will say so.`;
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = "Try again";
+    status.textContent = e.message;
+  }
+};
 
 /* ---------------- tools ---------------- */
 
@@ -610,6 +683,7 @@ const actions = {
   },
   share,
   save,
+  report: () => openReport(),
   clear: (btn) => {
     if (!btn.classList.contains("is-armed")) {
       btn.classList.add("is-armed");
