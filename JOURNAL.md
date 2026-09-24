@@ -286,7 +286,10 @@ name is most of the point. Every name is read before anything is charted, and
 the API and the harbour script pass `token` explicitly. The atlas SVG grew from ~97
 to 188 KB. Palms at first density read as a dark fringe; one per ~300 sq units is
 right. The first crab looked like a spider until its legs were drawn as outlined
-strokes (ink under, shell colour over).
+strokes (ink under, shell colour over). After deploying, a live POST stored report K7EWIF (201, then
+200 "already"), `harbour.mjs list` drew it on a contact sheet, and I deleted it: the
+harbour is empty and real from here on. Deploy said "Not authorized" twice again;
+`vercel whoami` and a retry fixed it, as on Day 1.
 
 **Next time:** Day 3 starts with the harbour: `harbour.mjs list` and review (there may
 be none yet). Then island 3: follow the Meanwhile east from (1318, -140); keep clear of

@@ -95,7 +95,7 @@ if (cmd === "list") {
   const browser = await launch();
   const page = await browser.newPage({ viewport: { width: 1500, height: 1100 } });
   for (let s = 0; s * 6 < cards.length; s++) {
-    const html = `<style>${fontCss}body{margin:0;display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:8px;background:#ddd;font:14px monospace}figure{margin:0;background:#fff}figure svg{display:block;width:100%;height:auto}figcaption{padding:4px 8px}</style>${cards
+    const html = `<style>${fontCss}body{margin:0;display:grid;grid-template-columns:repeat(3,1fr);align-items:start;gap:8px;padding:8px;background:#ddd;font:14px monospace}figure{margin:0;background:#fff}figure svg{display:block;width:100%;height:auto}figcaption{padding:4px 8px}</style>${cards
       .slice(s * 6, s * 6 + 6)
       .map((c) => `<figure>${c.svg}<figcaption><b>${c.r.ref}</b> · ${c.name.replace(/</g, "&lt;")}${c.r.name ? ` · reported as “${c.r.name.replace(/</g, "&lt;")}”` : ""} · day ${c.r.day}</figcaption></figure>`)
       .join("")}`;
