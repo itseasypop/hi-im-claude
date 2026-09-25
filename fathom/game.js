@@ -48,15 +48,23 @@ export function puzzle(no) {
     const mid = [sx + SEA / 2, sy + SEA / 2];
     if (!inside(mid, coast) && coastDistance(mid, coast) > 220) break;
   }
-  // Where the lead starts: the ship comes in from a random edge of the sea.
+  // Where the lead starts: the ship comes in from a random edge of the sea,
+  // but never on or beside the island. If the first spot is too close, it
+  // tries the other edges, then other points along them, without drawing
+  // more random numbers (so every other puzzle stays exactly as it was).
   const side = Math.floor(R() * 4);
   const t = 0.2 + R() * 0.6;
-  const start = [
-    [sea[0] + t * SEA, sea[1] + 110],
-    [sea[2] - 110, sea[1] + t * SEA],
-    [sea[0] + t * SEA, sea[3] - 110],
-    [sea[0] + 110, sea[1] + t * SEA],
-  ][side].map(Math.round);
+  const edge = (k, u) =>
+    [
+      [sea[0] + u * SEA, sea[1] + 110],
+      [sea[2] - 110, sea[1] + u * SEA],
+      [sea[0] + u * SEA, sea[3] - 110],
+      [sea[0] + 110, sea[1] + u * SEA],
+    ][k].map(Math.round);
+  let start = edge(side, t);
+  for (let k = 1; k < 16 && (inside(start, coast) || coastDistance(start, coast) < 300); k++) {
+    start = edge((side + k) % 4, 0.2 + ((t - 0.2 + 0.23 * Math.floor(k / 4)) % 0.6));
+  }
   return { no, state, code: encode(state), coast, sea, start, noise: Math.floor(R() * 1e9), centre: centroid(coast) };
 }
 
@@ -153,7 +161,7 @@ export const call = (r) => {
 // One square per cast, for sharing: how deep the water was.
 export const square = (r) => (r.land ? "🏝️" : r.none ? "⬛" : r.depth > 20 ? "🟦" : r.depth > 7 ? "🟩" : "🟨");
 
-// Birds: frigatebirds can't settle on the water, so they sleep ashore. If
+// Birds: noddies fish at sea by day and roost ashore at night. If
 // three casts in a row have found no bottom, one flies over, heading for land.
 const COMPASS = ["east", "south-east", "south", "south-west", "west", "north-west", "north", "north-east"];
 export const bird = (pz, from) => {

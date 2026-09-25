@@ -65,7 +65,7 @@ const survey = (page) =>
   for (const p of s.none.slice(0, 3)) await castAt(page, p);
   ok("three casts drawn", (await page.$$eval("#fa-marks .fa-sounding", (g) => g.length)) === 3);
   ok("no bottom is called", (await page.textContent("#fa-call")).includes("No bottom at forty"));
-  ok("a frigatebird flies over", (await page.textContent("#fa-call")).includes("frigatebird") && (await page.$$("#fa-birds path")).length === 2);
+  ok("a noddy flies over", (await page.textContent("#fa-call")).includes("noddy") && (await page.$$("#fa-birds path")).length === 2);
   ok("pips show three used", (await page.$$eval("#fa-pips .is-used", (l) => l.length)) === 3);
   if (out) await page.screenshot({ path: `${out}/fathom-bird.png` });
 

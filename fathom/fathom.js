@@ -1,7 +1,7 @@
 // Fathom: the page. game.js knows the sea; this draws it, takes the casts,
 // remembers them in this browser, and charts the island when it's found.
 import { puzzle, sound, call, square, bird, numberFor, dateOf, CASTS, SEA, NO_BOTTOM } from "./game.js";
-import { chart, sheet, THEMES } from "../landfall/chart.js";
+import { chart, sheet, THEMES, encodeNames } from "../landfall/chart.js";
 import { rhumbs, rose, ship, f, poly } from "../atlas/draw.js";
 
 const $ = (s) => document.querySelector(s);
@@ -23,7 +23,7 @@ const wait = (ms) => new Promise((r) => setTimeout(r, reduce.matches ? 0 : ms));
 
 /* ---------------- which day, and what's remembered ---------------- */
 
-const today = numberFor();
+const today = numberFor(); // at load; a tab can stay open past midnight, so later checks ask numberFor() again
 const asked = Number(new URLSearchParams(location.search).get("no"));
 const no = asked >= 1 && asked <= today ? Math.floor(asked) : today;
 const pz = puzzle(no);
@@ -37,9 +37,14 @@ const load = () => {
   return { v: 1, days: {} };
 };
 const store = load();
+// Other tabs may have saved since this one loaded: re-read, change only this
+// puzzle's entry, and write that back.
 const save = () => {
   try {
-    localStorage.setItem(KEY, JSON.stringify(store));
+    const fresh = load();
+    fresh.days[no] = game;
+    store.days = fresh.days;
+    localStorage.setItem(KEY, JSON.stringify(fresh));
   } catch (e) {}
 };
 const game = (store.days[no] ||= { casts: [], done: false, found: false });
@@ -195,18 +200,21 @@ const describe = (r) => {
   return [call(r), `The tallow brings up ${r.bottomName}.`];
 };
 
-// Frigatebirds can't land on the water, so at dusk they fly home to sleep ashore.
+// Noddies fish at sea by day and roost ashore at night, which is why island
+// navigators watched them to find land.
 const lookForBirds = () => {
   const c = game.casts;
   if (game.done || c.length < 3 || game.bird) return null;
   if (!c.slice(-3).every((p) => sound(pz, p).none)) return null;
   game.bird = bird(pz, c[c.length - 1]);
+  game.birdAt = c[c.length - 1];
   save();
   return game.bird;
 };
 
+// Drawn beside the cast it was seen from (older saves only kept the direction).
 const drawBird = (dir) => {
-  const at = game.casts[game.casts.length - 1];
+  const at = game.birdAt || game.casts[game.casts.length - 1];
   const a = { east: 0, "south-east": 45, south: 90, "south-west": 135, west: 180, "north-west": 225, north: 270, "north-east": 315 }[dir] * (Math.PI / 180);
   const g = $("#fa-birds");
   g.innerHTML = "";
@@ -250,6 +258,9 @@ const sail = (to) =>
 const cast = async (p) => {
   if (busy || game.done) return;
   if (p[0] < sx0 || p[1] < sy0 || p[0] > sx1 || p[1] > sy1) return;
+  // If another tab has played further, pick up its game instead of overwriting it.
+  const saved = load().days[no];
+  if (saved && (saved.done || saved.casts?.length > game.casts.length)) return location.reload();
   busy = true;
   vp.classList.add("is-busy");
   p = p.map((v) => Math.round(v));
@@ -268,7 +279,7 @@ const cast = async (p) => {
   const dir = lookForBirds();
   if (dir) {
     drawBird(dir);
-    say(main, `${sub} A frigatebird passes over, heading ${dir}. They sleep ashore.`);
+    say(main, `${sub} A noddy passes low overhead, heading ${dir}. Noddies fish at sea by day and roost ashore at night.`);
   }
   if (game.done) {
     await wait(r.land ? 700 : 900);
@@ -285,7 +296,10 @@ vp.addEventListener("pointerdown", (e) => {
   if (e.pointerType === "mouse" && e.button !== 0) return;
   down = { x: e.clientX, y: e.clientY };
 });
+vp.addEventListener("pointercancel", () => (down = null));
+vp.addEventListener("pointerleave", () => (down = null));
 vp.addEventListener("pointerup", (e) => {
+  if (e.pointerType === "mouse" && e.button !== 0) return;
   if (!down || Math.hypot(e.clientX - down.x, e.clientY - down.y) > 12) return (down = null);
   down = null;
   const p = toWorld(e);
@@ -302,7 +316,13 @@ const drawAim = () => {
   setView(view);
 };
 vp.addEventListener("keydown", (e) => {
-  if (game.done) return;
+  if (game.done) {
+    if ((e.key === "Enter" || e.key === " ") && e.target.closest?.(".place")) {
+      e.preventDefault();
+      pickPlace(e);
+    }
+    return;
+  }
   const step = e.shiftKey ? 30 : 110;
   const moves = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] };
   if (moves[e.key]) {
@@ -310,7 +330,7 @@ vp.addEventListener("keydown", (e) => {
     aim ||= game.casts.length ? game.casts[game.casts.length - 1].slice() : mid.slice();
     aim = [clamp(aim[0] + moves[e.key][0], sx0 + 10, sx1 - 10), clamp(aim[1] + moves[e.key][1], sy0 + 10, sy1 - 10)];
     drawAim();
-  } else if ((e.key === "Enter" || e.key === " ") && !busy) {
+  } else if ((e.key === "Enter" || e.key === " ") && !busy && !e.repeat) {
     e.preventDefault();
     aim ||= mid.slice();
     cast(aim.slice());
@@ -325,10 +345,17 @@ vp.addEventListener("blur", () => {
 
 let charted = null;
 let wide = false;
-const labelScale = () => clamp(900 / W, 1, 2.3);
+// Names are dealt in an order that depends on how many labels fit, so the
+// island's name comes from one fixed layout (the same one Landfall draws on a
+// desktop), whatever the screen. The label scale is set once, at the reveal,
+// so a resize or a theme change redraws the same chart.
+let islandName = null;
+let fixedScale = null;
+const labelScale = () => (fixedScale ??= clamp(900 / W, 1, 2.3));
 
 const revealChart = (animate) => {
-  const c = chart(pz.state, {
+  islandName ??= chart(pz.state, { aspect: 1 }).name;
+  const c = chart({ ...pz.state, names: { island: islandName } }, {
     aspect: 1,
     theme: theme(),
     labelScale: labelScale(),
@@ -371,7 +398,8 @@ const stats = () => {
   const days = Object.entries(store.days).filter(([, d]) => d.done);
   const found = days.filter(([, d]) => d.found);
   let streak = 0;
-  for (let n = store.days[today]?.done ? today : today - 1; store.days[n]?.found; n--) streak++;
+  const now = numberFor();
+  for (let n = store.days[now]?.done ? now : now - 1; store.days[n]?.found; n--) streak++;
   const avg = found.length ? found.reduce((s, [, d]) => s + d.casts.length, 0) / found.length : 0;
   const best = found.length ? Math.min(...found.map(([, d]) => d.casts.length)) : 0;
   return [
@@ -386,7 +414,7 @@ const stats = () => {
 const shareText = () => {
   const squares = game.casts.map((p) => square(sound(pz, p))).join("") + (game.found ? "" : "🌫️");
   const head = game.found ? `found in ${game.casts.length}/${CASTS}` : `lost in the fog X/${CASTS}`;
-  return `Fathom No. ${no} · ${head}\n${squares}\nhttps://${SITE}${no !== today ? `?no=${no}` : ""}`;
+  return `Fathom No. ${no} · ${head}\n${squares}\nhttps://${SITE}${no !== numberFor() ? `?no=${no}` : ""}`;
 };
 
 const nextIn = () => {
@@ -405,17 +433,20 @@ const showResult = () => {
     ? `${n === 1 ? "First cast. That doesn’t happen." : n <= 3 ? `In ${n} casts, which is uncanny.` : n <= 6 ? `In ${n} casts. A fine piece of navigation.` : `In ${n} casts, with the fog thickening.`} Its chart is below, with a history for every place on it.`
     : `It was there all along, to the ${bird(pz, last)} of your last cast: an island called ${name}. Its chart is below anyway, with a history for every place on it.`;
   $("#fa-squares").textContent = game.casts.map((p) => square(sound(pz, p))).join(" ") + (game.found ? "" : " 🌫️");
-  $("#fa-landfall").href = `/island?i=${pz.code}`;
+  $("#fa-landfall").href = `/island?i=${pz.code}&n=${encodeNames({ island: name })}`;
   $("#fa-stats").innerHTML = stats()
     .map(([k, v]) => `<div><dt>${k}</dt><dd>${v}</dd></div>`)
     .join("");
-  const upd = () => ($("#fa-next").textContent = no === today ? `The next island surfaces at midnight, in ${nextIn()}.` : `That was No. ${no}. Today’s is No. ${today}.`);
+  const upd = () => {
+    const now = numberFor();
+    $("#fa-next").textContent = no === now ? `The next island surfaces at midnight, in ${nextIn()}.` : `That was No. ${no}. Today’s is No. ${now}.`;
+  };
   upd();
   setInterval(upd, 30000);
   result.hidden = false;
 
   // The gazetteer: every place on the island, with its story.
-  const gz = charted.places;
+  const gz = charted.places.map((p) => (p.id === "island" ? { ...p, text: p.text.replace(/^Charted first as [^.]*\. /, "") } : p));
   $("#fa-gz-heading").textContent = `The chart of ${name}`;
   $("#fa-gz-intro").textContent = `${game.found ? "Found" : "Lost"} in the fog on ${dateText}. Every name and history is dealt from the same hand-written lists as Landfall’s.`;
   $("#fa-gz").innerHTML = gz
@@ -491,18 +522,23 @@ for (const p of game.casts) {
   drawSounding(p, sound(pz, p), false);
   shipAt = p.slice();
 }
-if (game.casts.length > 1) heading = game.casts.at(-1)[0] >= game.casts.at(-2)[0] ? 1 : -1;
+if (game.casts.length) heading = game.casts[game.casts.length - 1][0] >= (game.casts[game.casts.length - 2] || pz.start)[0] ? 1 : -1;
 drawTrack();
+lookForBirds(); // in case the page was left while the third empty cast was still sailing
 if (game.bird) drawBird(game.bird);
 pips();
 setView(view);
 if (game.done) finish(false);
 else if (game.casts.length) {
-  const [main, sub] = describe(sound(pz, game.casts.at(-1)));
-  say(main, `${sub} ${CASTS - game.casts.length} casts left today.`);
+  const [main, sub] = describe(sound(pz, game.casts[game.casts.length - 1]));
+  const left = CASTS - game.casts.length;
+  say(main, `${sub} ${left} cast${left === 1 ? "" : "s"} left today.`);
 }
 
-new ResizeObserver(() => measure()).observe(vp);
+new ResizeObserver(() => {
+  measure();
+  if (charted) tuck();
+}).observe(vp);
 new MutationObserver(paintTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 darkMQ.addEventListener?.("change", paintTheme);
 

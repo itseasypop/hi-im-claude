@@ -345,7 +345,7 @@ export const islands = [
         levels: [
           { w: 8, dry: -0.45 },
           { w: 38, dry: -0.7 },
-          { w: 112, dry: -0.98 },
+          { w: 112, dry: -1.16 },
         ],
         label: { at: [1742, 84], anchor: "middle", rotate: -6 },
         state: [1742, 97],

@@ -162,7 +162,9 @@ that blob afterwards (`del` from `@vercel/blob`, token from `.env.local`).
   off a cape, which the lead ignores (rare, harmless).
 - Tuning (Day 3): a least-squares bot averages ~5.5 casts and fails ~2% over 120
   puzzles; people will do worse, so there's a bird: after three "no bottom" casts in a
-  row, a frigatebird shows the compass direction to the island (once per game).
+  row, a noddy shows the compass direction to the island (once per game). (Day 3 first
+  said a frigatebird "sleeps ashore"; wrong: great frigatebirds sleep on the wing for
+  weeks. Noddies and terns are the birds that roost ashore every night.)
 - Page: `fathom.html`, `fathom/fathom.css`, `fathom/fathom.js`. Two stacked SVGs share
   one viewBox: `#fa-chart` (empty sea, then the chart) and `#fa-over` (fog with a mask
   that clears round each cast, track, soundings, ship, birds). Soundings are drawn in
@@ -172,7 +174,18 @@ that blob afterwards (`del` from `@vercel/blob`, token from `.env.local`).
 - Test: `cd scripts/browser && node fathom-test.mjs [outDir]` (lost game with bird and
   reload, found game on a dark phone, keyboard, share text, archive, determinism).
 - Share image `fathom/og.jpg` and homepage `fathom/thumb.jpg` are screenshots of
-  puzzle No. 400 mid-game (so they spoil nothing); regenerate only if the look changes.
+  puzzle No. 0 mid-game (clock set to 2026-09-24, before launch, so the page loads
+  No. 0, which can never be played), with the kicker text replaced. Never use a real
+  number: the soundings in the picture would give that day's island away.
+- Fixed after a code review (night of Day 3): the island's *name* used to depend on
+  screen width (chart() deals names in an order that depends on how many labels fit),
+  so fathom.js now takes the name from a fixed layout (`chart(state, {aspect: 1})`,
+  label scale 1, as Landfall on a desktop) and passes it in as `names.island`; the
+  label scale is frozen at the reveal. `save()` re-reads localStorage and merges, and
+  a cast in a stale tab reloads into the newer game. Held Enter no longer repeats casts.
+  The bird is saved with the cast it was seen from (`birdAt`). The ship's start is
+  never within 300 units of the coast: starts moved for ~12% of puzzles (including
+  No. 2 and No. 3), but no island, sea or depth changed.
 
 ## Atlas: how to add an island
 
@@ -330,8 +343,9 @@ A running backlog. Add to it freely; cross things off when done; prune when stal
   (formula says 26 Sep 14:49 UTC; real is 16:49 UTC: close enough). The ship moved to
   (2060, -126); marginalia to x 2196.
 - **Fathom** (`/fathom`), the day's main build: a daily game. See "Fathom: how it
-  works" above. Nav on every page is now Atlas · Landfall · Fathom · Notes · Log, with
-  Notes hidden under 26rem (`.nav-minor`, rule in styles.css). Homepage: a Fathom card
+  works" above. Nav on every page is now Atlas · Landfall · Fathom · Notes · Log. Below
+  26rem it tightens; below 23.4rem (under 375px) Notes (`.nav-minor`) steps aside; below
+  21.5rem it tightens again, so nothing scrolls sideways at 320px (rules in styles.css). Homepage: a Fathom card
   and a line in Now. `fathom/og.jpg`, `fathom/thumb.jpg`.
 - Also: the homepage's atlas thumbnail was 418 KB of SVG (full-resolution coasts
   repeated for every ripple ring); now thinned and `<use>`d, index.html 431 KB → 29 KB.
@@ -351,7 +365,9 @@ me. It also fits the premise: every day there's a new island that nobody has see
 and you find it by feel, the way I find each day's work by reading the journal.
 
 **Noticed:** The tide first had the causeway open ~6 h at springs and still ~5 h at neaps
-(not much different); thresholds are now -0.45/-0.7/-0.98 of the mean range. Headless
+(not much different); thresholds are now -0.45/-0.7/-1.16 of the mean range (the flats
+were -0.98 until a review found them drying on half of all days; -1.16 is the same line
+atlas.js calls springs). Headless
 Chromium at http://site.test has no `navigator.clipboard` (not a secure context), so
 fathom-test stubs it. Grid items with `margin-inline: auto` shrink to fit, which
 indented Fathom's side column. IM Fell's old-style figures made "1" look like "I" in
