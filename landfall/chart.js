@@ -1195,7 +1195,7 @@ export function chart(state, opts = {}) {
   }
 
   /* ----- ship ----- */
-  if (layout.ship) {
+  if (layout.ship && opts.ship !== false) {
     const [x, y] = layout.ship;
     const east = x > main.mid[0];
     marks.push(east ? `<g transform="translate(${f(2 * x)} 0) scale(-1 1)">${ship(x, y, 1.1)}</g>` : ship(x, y, 1.1));
@@ -1213,7 +1213,7 @@ export function chart(state, opts = {}) {
   const [cx0, cy0] = layout.cart;
   const [kx0, ky0, kx1, ky1] = [0, 0, cw0, ch0];
   const kx = cw0 / 2;
-  const cartouche = `<g class="lf-cartouche" transform="translate(${f(cx0)} ${f(cy0)}) scale(${LS2.toFixed(3)})"><rect class="ct-bg" x="${f(kx0)}" y="${f(ky0)}" width="${f(kx1 - kx0)}" height="${f(ky1 - ky0)}"/><rect class="ct-rule" x="${f(kx0 + 5)}" y="${f(ky0 + 5)}" width="${f(kx1 - kx0 - 10)}" height="${f(ky1 - ky0 - 10)}"/><text class="ct-k" x="${f(kx)}" y="${f(ky0 + 34)}" font-size="16" text-anchor="middle">An island called</text><text class="ct-t" x="${f(kx)}" y="${f(ky0 + 70)}" font-size="${titleSize}" text-anchor="middle">${xml(cartTitle)}</text><text class="ct-k" x="${f(kx)}" y="${f(ky0 + 96)}" font-size="14" text-anchor="middle">drawn by hand, ${xml(date)}</text><path class="ct-rule" d="M${f(kx - 70)} ${f(ky0 + 110)}H${f(kx + 70)}"/><text class="ct-m" x="${f(kx)}" y="${f(ky0 + 127)}" font-size="10" text-anchor="middle">${SITE.toUpperCase()}</text></g>`;
+  const cartouche = `<g class="lf-cartouche" transform="translate(${f(cx0)} ${f(cy0)}) scale(${LS2.toFixed(3)})"><rect class="ct-bg" x="${f(kx0)}" y="${f(ky0)}" width="${f(kx1 - kx0)}" height="${f(ky1 - ky0)}"/><rect class="ct-rule" x="${f(kx0 + 5)}" y="${f(ky0 + 5)}" width="${f(kx1 - kx0 - 10)}" height="${f(ky1 - ky0 - 10)}"/><text class="ct-k" x="${f(kx)}" y="${f(ky0 + 34)}" font-size="16" text-anchor="middle">${xml(opts.kicker || "An island called")}</text><text class="ct-t" x="${f(kx)}" y="${f(ky0 + 70)}" font-size="${titleSize}" text-anchor="middle">${xml(cartTitle)}</text><text class="ct-k" x="${f(kx)}" y="${f(ky0 + 96)}" font-size="14" text-anchor="middle">${xml(opts.byline || `drawn by hand, ${date}`)}</text><path class="ct-rule" d="M${f(kx - 70)} ${f(ky0 + 110)}H${f(kx + 70)}"/><text class="ct-m" x="${f(kx)}" y="${f(ky0 + 127)}" font-size="10" text-anchor="middle">${(opts.site || SITE).toUpperCase()}</text></g>`;
 
   /* ----- assemble ----- */
   const all = lands;
@@ -1272,7 +1272,7 @@ ${opts.paper ? paper(frame, opts.theme === "dark", opts.paper !== "plain") : ""}
 
   const coastLeagues = Math.round(main.coastLen / LEAGUE / 10) * 10;
   const areaLeagues = Math.round((main.area / (LEAGUE * LEAGUE)) / 100) * 100;
-  return { svg, frame, places: gazetteer, name: islandName, date, coastLeagues, areaLeagues, theme: opts.theme === "dark" ? "dark" : "light" };
+  return { svg, frame, places: gazetteer, name: islandName, date, coastLeagues, areaLeagues, theme: opts.theme === "dark" ? "dark" : "light", lands: lands.map((L) => L.coast) };
 }
 
 // A random island for people who'd rather not draw: a wobbly blob with a

@@ -462,9 +462,18 @@ const thumbBox = (() => {
   return [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2];
 })();
 const [tx0, ty0, tx1, ty1] = thumbBox;
-const thumb = `<svg class="atlas-thumb" viewBox="${[tx0, ty0, tx1 - tx0, ty1 - ty0].map(f).join(" ")}" aria-hidden="true">${[30, 16, 6]
-  .map((d, i) => ringSources.map((m) => `<path d="${poly(m.points)}" class="th-ring" style="stroke-width:${2 * d + 3};opacity:${[0.18, 0.3, 0.5][i]}"/><path d="${poly(m.points)}" class="th-clear" style="stroke-width:${2 * d - 3}"/>`).join(""))
-  .join("")}${reefs.map((r) => `<path d="${poly(r.outer)}" class="th-clear-fill"/><path d="${poly(r.lagoon)}" class="th-lagoon"/>`).join("")}${landmasses.map((m) => `<path d="${poly(m.points)}" class="th-land"/>`).join("")}${islands
+// The thumbnail is ~200 px wide, so coasts are thinned to a point every few
+// units and each is written once, then reused for every ring.
+const thin = (pts, step = 7) =>
+  pts.reduce((out, p) => {
+    const q = out[out.length - 1];
+    if (!q || Math.hypot(p[0] - q[0], p[1] - q[1]) >= step) out.push([Math.round(p[0]), Math.round(p[1])]);
+    return out;
+  }, []);
+const thumbDefs = ringSources.map((m) => `<path id="th-${m.id}" d="${poly(thin(m.points))}"/>`).join("");
+const thumb = `<svg class="atlas-thumb" viewBox="${[tx0, ty0, tx1 - tx0, ty1 - ty0].map(f).join(" ")}" aria-hidden="true"><defs>${thumbDefs}</defs>${[30, 16, 6]
+  .map((d, i) => ringSources.map((m) => `<use href="#th-${m.id}" class="th-ring" style="stroke-width:${2 * d + 3};opacity:${[0.18, 0.3, 0.5][i]}"/><use href="#th-${m.id}" class="th-clear" style="stroke-width:${2 * d - 3}"/>`).join(""))
+  .join("")}${reefs.map((r) => `<path d="${poly(thin(r.outer))}" class="th-clear-fill"/><path d="${poly(thin(r.lagoon))}" class="th-lagoon"/>`).join("")}${landmasses.map((m) => `<use href="#th-${m.id}" class="th-land"/>`).join("")}${islands
   .map((i) => `<text class="th-label" x="${f(i.label.at[0])}" y="${f(i.label.at[1])}" transform="rotate(${i.label.rotate || 0} ${f(i.label.at[0])} ${f(i.label.at[1])})">${esc(i.name.toUpperCase())}</text>`)
   .join("")}</svg>`;
 

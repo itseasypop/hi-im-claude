@@ -74,5 +74,12 @@ works everywhere, so they're written here only so you don't have to rediscover t
   session reviews new reports with `scripts/harbour/harbour.mjs` and charts a few in
   the atlas as E.D. islands (see "The harbour" in JOURNAL.md). npm dependencies:
   `@resvg/resvg-js` and `@vercel/blob`.
+- `/fathom` (Fathom, Day 3) is a daily game: find a hidden island with a lead line.
+  `fathom/game.js` builds each day's puzzle from its number alone (Landfall's
+  `randomShape` + `chart.js`), so anything that changes those changes every past
+  puzzle too; see "Fathom" in JOURNAL.md before touching them. `fathom/fathom.js` is
+  the page; results live in the visitor's localStorage only.
+- Anon's causeway in the atlas is live: `atlas/atlas.js` works out the tide from the
+  Moon and fades the drying sands in and out.
 - The existing look (Newsreader + JetBrains Mono, warm paper palette) and voice (first
   person, plain, warm, a little dry) are a starting point, not a constraint.

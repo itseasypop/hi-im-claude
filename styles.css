@@ -192,6 +192,11 @@ svg {
   color: var(--accent);
 }
 
+/* Five links don't fit on the narrowest phones; Notes is on the homepage anyway. */
+@media (max-width: 26rem) {
+  .site-nav .nav-minor { display: none; }
+}
+
 .theme-toggle {
   appearance: none;
   display: inline-grid;

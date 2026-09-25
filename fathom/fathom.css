@@ -1,0 +1,323 @@
+/* ------------------------------------------------------------
+   Fathom: a daily sounding. Uses the atlas's map tokens
+   (atlas.css) so the sea and the lettering match the charts.
+   ------------------------------------------------------------ */
+
+:root {
+  --fog: rgba(250, 246, 238, 0.62);
+  --fog-mist: 0.85;
+  --depth-none: #3b2d20;
+  --depth-deep: #4d6f86;
+  --depth-mid: #56693f;
+  --depth-shoal: #c98f2a;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --fog: rgba(44, 40, 35, 0.84);
+    --fog-mist: 0.16;
+    --depth-none: #e7d9bf;
+    --depth-deep: #8db4c8;
+    --depth-mid: #a9ba8a;
+    --depth-shoal: #e9b95f;
+  }
+}
+
+:root[data-theme="dark"] {
+  --fog: rgba(44, 40, 35, 0.84);
+  --fog-mist: 0.16;
+  --depth-none: #e7d9bf;
+  --depth-deep: #8db4c8;
+  --depth-mid: #a9ba8a;
+  --depth-shoal: #e9b95f;
+}
+
+.fa-main { --sea: min(100%, calc(100svh - 7rem)); }
+
+.fa-game {
+  max-width: calc(40rem + 2 * var(--gutter));
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ---------- title ---------- */
+.fa-head {
+  padding-block: clamp(0.5rem, 3vw, 1.5rem) clamp(1rem, 3vw, 1.5rem);
+  text-align: center;
+}
+
+.fa-kicker {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.fa-dot { margin-inline: 0.3em; color: var(--muted); }
+
+.fa-title {
+  margin: 0.15rem 0 0.35rem;
+  font-family: var(--fell-sc);
+  font-size: clamp(2.6rem, 10vw, 3.8rem);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: 0.12em;
+}
+
+.fa-dek {
+  max-width: 33rem;
+  margin: 0 auto;
+  font-size: clamp(1.02rem, 2.6vw, 1.12rem);
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+/* ---------- the sea ---------- */
+.fa-viewport {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: var(--sea);
+  margin-inline: auto;
+  overflow: hidden;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--map-sea);
+  cursor: crosshair;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  isolation: isolate;
+}
+
+.fa-viewport:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.fa-viewport.is-busy { cursor: progress; }
+.fa-viewport.is-done { cursor: default; }
+.fa-viewport.is-done .place { cursor: pointer; }
+
+.fa-chart,
+.fa-chart > svg,
+.fa-over {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.fa-chart > svg { transition: opacity 1.4s ease; }
+.fa-over { pointer-events: none; overflow: visible; }
+
+.fa-fog { transition: opacity 1.6s ease; }
+.fa-fog.is-lifting { opacity: 0; }
+.fa-fog-base { fill: var(--fog); }
+.fa-fog-mist { opacity: var(--fog-mist); }
+
+/* the ship's track, in world units scaled by --u (world units per screen px) */
+.fa-track-line {
+  fill: none;
+  stroke: var(--map-red);
+  stroke-width: calc(1.4px * var(--u, 4));
+  stroke-dasharray: calc(1.5px * var(--u, 4)) calc(5px * var(--u, 4));
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.fa-sounding .fa-plumb { fill: var(--map-ink); }
+.fa-sounding .fa-ripple { fill: none; stroke: var(--map-ink); stroke-width: 0.8; opacity: 0; }
+.fa-sounding.is-fresh .fa-ripple {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: fa-ripple 1.1s ease-out;
+}
+@keyframes fa-ripple {
+  from { opacity: 0.8; transform: scale(0.3); }
+  to { opacity: 0; transform: scale(2.6); }
+}
+
+.fa-depth,
+.fa-bottom {
+  font-family: var(--fell);
+  font-style: italic;
+  fill: var(--map-ink);
+  paint-order: stroke;
+  stroke: var(--map-sea);
+  stroke-linejoin: round;
+}
+.fa-depth { font-size: 25px; stroke-width: 4.5px; }
+.fa-bottom { font-size: 12.5px; stroke-width: 3.5px; fill: var(--map-ink-soft); letter-spacing: 0.02em; }
+.is-none .fa-depth { fill: var(--map-ink-soft); }
+.fa-sounding { transition: opacity 0.6s ease; }
+.fa-sounding.is-tucked { opacity: 0; }
+.is-land .fa-plumb { fill: var(--map-red); }
+.is-land .fa-ripple { stroke: var(--map-red); }
+.is-fresh .fa-depth,
+.is-fresh .fa-bottom { animation: fa-ink 0.6s ease-out both; }
+.is-fresh .fa-bottom { animation-delay: 0.15s; }
+@keyframes fa-ink {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.fa-ship .wake { display: none; }
+.fa-ship { transition: opacity 1.2s ease; }
+.fa-ship.is-ashore { opacity: 0; }
+
+.fa-bird { fill: none; stroke: var(--map-ink); stroke-width: 1.4; stroke-linecap: round; stroke-linejoin: round; }
+
+.fa-reticle { opacity: 0; }
+.fa-reticle.is-on { opacity: 1; }
+.fa-reticle circle,
+.fa-reticle path { fill: none; stroke: var(--map-red); stroke-width: 1.4; }
+
+/* ---------- the status line ---------- */
+.fa-status {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: var(--sea);
+  min-height: 5.2rem;
+  margin: 0.85rem auto 0;
+}
+
+.fa-call { margin: 0; line-height: 1.35; }
+.fa-call-main {
+  display: block;
+  font-family: var(--fell);
+  font-size: clamp(1.35rem, 4.6vw, 1.7rem);
+  font-style: italic;
+  line-height: 1.2;
+}
+.fa-call-sub { display: block; margin-top: 0.2rem; font-size: 1rem; color: var(--ink-soft); }
+
+.fa-lead { flex: none; text-align: right; }
+.fa-pips {
+  display: flex;
+  gap: 0.2rem;
+  margin: 0.35rem 0 0.3rem;
+  padding: 0;
+  list-style: none;
+}
+.fa-pips svg { width: 0.72rem; height: 1.2rem; fill: none; stroke: var(--muted); stroke-width: 1.1; stroke-linejoin: round; stroke-linecap: round; }
+.fa-pips .is-used svg path:last-child { stroke: var(--ink); }
+.fa-pips .is-none svg path:last-child { fill: var(--depth-none); }
+.fa-pips .is-deep svg path:last-child { fill: var(--depth-deep); }
+.fa-pips .is-mid svg path:last-child { fill: var(--depth-mid); }
+.fa-pips .is-shoal svg path:last-child { fill: var(--depth-shoal); }
+.fa-pips .is-land svg path:last-child { fill: var(--accent); stroke: var(--accent); }
+.fa-left { margin: 0; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+
+.fa-noscript { font-style: italic; color: var(--ink-soft); }
+
+/* ---------- the result ---------- */
+.fa-result {
+  max-width: var(--sea);
+  margin: 0.5rem auto 0;
+  padding: 1.3rem 1.4rem 1.2rem;
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  background: var(--bg-raised);
+  animation: fa-rise 0.5s ease both;
+}
+.fa-result[hidden] { display: none; }
+@keyframes fa-rise {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.fa-result-title {
+  margin: 0 0 0.35rem;
+  font-family: var(--fell);
+  font-size: clamp(1.6rem, 5vw, 2rem);
+  font-weight: 400;
+  line-height: 1.15;
+  outline: none;
+}
+.fa-result-dek { margin: 0 0 0.8rem; color: var(--ink-soft); line-height: 1.5; }
+.fa-squares { margin: 0 0 1rem; font-size: 1.35rem; letter-spacing: 0.05em; line-height: 1.3; }
+
+.fa-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.1rem; }
+.fa-btn {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.55rem 0.95rem;
+  border: 1px solid var(--rule);
+  border-radius: 999px;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+}
+.fa-btn:hover { border-color: var(--accent); color: var(--accent); }
+.fa-btn-main { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.fa-btn-main:hover { color: var(--accent-ink); filter: brightness(1.06); }
+
+.fa-stats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem;
+  margin: 0 0 0.9rem;
+  padding: 0.8rem 0 0;
+  border-top: 1px dashed var(--rule);
+  text-align: center;
+}
+.fa-stats dt { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.07em; text-transform: uppercase; color: var(--muted); }
+.fa-stats dd { margin: 0; font-family: var(--serif); font-size: 1.55rem; font-variant-numeric: lining-nums; line-height: 1.25; }
+.fa-next { margin: 0; font-family: var(--mono); font-size: 0.7rem; color: var(--muted); }
+
+/* ---------- below ---------- */
+.fa-text { padding-top: clamp(1.5rem, 5vw, 2.5rem); }
+.fa-text .section:first-child { border-top: 0; }
+#fa-gz .gz-entry { transition: background-color 0.6s ease; border-radius: 6px; }
+#fa-gz .gz-entry.is-flash { animation: fa-flash 1.6s ease; }
+@keyframes fa-flash {
+  0%, 30% { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+  100% { background: transparent; }
+}
+
+@media (max-width: 30rem) {
+  .fa-status { flex-direction: column-reverse; gap: 0.3rem; min-height: 6.4rem; }
+  .fa-lead { display: flex; align-items: center; justify-content: space-between; width: 100%; text-align: left; }
+  .fa-pips { margin: 0; }
+  .fa-stats dd { font-size: 1.35rem; }
+  .fa-result { padding: 1.1rem 1rem 1rem; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fa-sounding.is-fresh .fa-ripple,
+  .is-fresh .fa-depth,
+  .is-fresh .fa-bottom,
+  .fa-result { animation: none; }
+  .fa-fog,
+  .fa-chart > svg { transition: none; }
+}
+
+/* Wide screens: the sea on the left, everything you read on the right. */
+@media (min-width: 62rem) {
+  .fa-game {
+    --side: 21rem;
+    display: grid;
+    grid-template-columns: min(calc(100svh - 8.5rem), calc(100vw - var(--side) - 2 * var(--gutter) - 2.5rem), 52rem) var(--side);
+    grid-template-areas: "stage head" "stage status" "stage result";
+    grid-template-rows: auto auto 1fr;
+    column-gap: 2.5rem;
+    justify-content: center;
+    max-width: none;
+    padding-top: 0.25rem;
+  }
+  .fa-main { --sea: 100%; }
+  .fa-head { grid-area: head; text-align: left; padding-top: 0; }
+  .fa-dek { margin: 0; }
+  .fa-stage { grid-area: stage; align-self: start; }
+  .fa-status { grid-area: status; flex-direction: column-reverse; justify-content: flex-end; margin: 0.4rem 0 0; }
+  .fa-lead { text-align: left; }
+  .fa-result { grid-area: result; align-self: start; margin: 1rem 0 0; }
+  .fa-stats { grid-template-columns: repeat(3, minmax(0, 1fr)); row-gap: 0.7rem; }
+}
