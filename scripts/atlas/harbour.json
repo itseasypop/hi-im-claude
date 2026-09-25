@@ -1,4 +1,42 @@
 {
-  "reviewed": {},
-  "sightings": []
+  "reviewed": {
+    "GUYYJO": {
+      "day": 3,
+      "decision": "charted"
+    },
+    "CAFWCW": {
+      "day": 3,
+      "decision": "charted"
+    }
+  },
+  "sightings": [
+    {
+      "ref": "GUYYJO",
+      "i": "ARTvoFDwAQA2AIf_uyEXTiZNJjgnDyDdD739xvjG990Atw62D-4K7hbmLOct2xvg7-_R99L24_HxwNrd3vPl_fIEzPv0zdjz7__wC_Ih6Qz0FNEM8A_0FPYX-jP_QA1BDSX9RPMz_i0MEQsMDwYQARP9EthK_wo",
+      "name": "Unless",
+      "charted": "Unless",
+      "reported": 2,
+      "day": 3,
+      "at": [
+        671,
+        582
+      ],
+      "scale": 1,
+      "text": "Reported by one ship, which described a harbour called Kindling, a mountain called Old Grudge, and a sea serpent in more detail than seemed necessary. It is drawn here on the understanding that it exists, unless it doesn&rsquo;t."
+    },
+    {
+      "ref": "CAFWCW",
+      "i": "ATN4CVDwAQAsAScANQAr9SvuG_QN4RXaDsMLsgSzBLID1fzX9dzu5ent5Pbk-NX9yAPjCeMS5TLOBu0FxQriF-4jAicVLCQsJRMIEwMo_Br2LOMt4jzhKv4HIu8q7iv8GSBK",
+      "name": "Lull",
+      "charted": "Lull",
+      "reported": 2,
+      "day": 3,
+      "at": [
+        294,
+        777
+      ],
+      "scale": 1,
+      "text": "Reported by a ship that lay becalmed off its coast for a week with nothing to do but draw it, which is why the chart is so careful. Nobody has found it since. The wind keeps picking up."
+    }
+  ]
 }

@@ -16,7 +16,7 @@ import { atlas, seas, islands, marginalia, voyage, log } from "./world.mjs";
 import {
   rng, hashString, f, pt, poly, esc, attr, deg, roughen, inside, bbox, scatter,
   mountain, cloud, tree, town, lighthouse, rock, bench, octopus, rose, rhumbs, scaleBar, ship,
-  palm, reef, drowned, crab, track,
+  palm, reef, drowned, crab, track, ribbon, posts, refuge, tideMill,
 } from "../../atlas/draw.js";
 import { decode, coastSeed, encodeNames } from "../../landfall/chart.js";
 
@@ -48,6 +48,7 @@ const land = [];
 const relief = []; // [y, svg] sorted back to front
 const marks = [];
 const labels = [];
+const tidal = []; // sands that dry at low water, drawn between the sea and the land
 const hits = [];
 
 const label = (text, [x, y], cls, { anchor = "middle", rotate = 0, size, lod = 1, onLand = false } = {}) => {
@@ -185,7 +186,7 @@ for (const isl of islands) {
   for (const ft of isl.features) {
     const L = ft.label || {};
     const lab = (cls, lod = 1) => label(esc(ft.name), L.at, cls, { anchor: L.anchor, rotate: L.rotate, lod, onLand: inside(L.at, main) });
-    if (ft.at && !["octopus", "islet", "crab", "drowned", "pass"].includes(ft.type) && !onIsland(ft.at)) warnings.push(`${ft.id}: point is not on ${isl.name}`);
+    if (ft.at && !["octopus", "islet", "crab", "drowned", "pass", "refuge"].includes(ft.type) && !onIsland(ft.at)) warnings.push(`${ft.id}: point is not on ${isl.name}`);
 
     switch (ft.type) {
       case "town":
@@ -251,6 +252,33 @@ for (const isl of islands) {
         avoid.push([ft.at, 36]);
         place(ft, isl, [ft.at[0], ft.at[1] - 10], lab("lab-feature lab-creature"), 36);
         break;
+      case "causeway": {
+        // Widest first, so the causeway itself sits on top of its bank. Each
+        // level carries the tide height it dries at; atlas.js fades it in and
+        // out with the live tide. Without script, the chart shows mid-ebb.
+        const hw = isl.tide?.hwfc ?? 0;
+        ft.levels
+          .map((lv, k) => ({ ...lv, k }))
+          .reverse()
+          .forEach(({ w, dry, k }) => {
+            const band = roughen(ribbon(ft.path, w), isl.seed + 50 + k, { minLen: Math.max(3, w / 9), rough: k ? 0.22 : 0.08 });
+            tidal.push(`<g class="tidal tidal-${k}" data-dry="${dry}" data-hwfc="${hw}" style="--d:${k < 2 ? 1 : 0}"><path class="sands" d="${poly(band)}"/><path class="sands-dots" d="${poly(band)}"/><path class="sands-edge" d="${poly(band)}"/></g>`);
+          });
+        marks.push(posts(ft.path, 13, 6.5));
+        labels.push(`<text class="lab lab-tiny lod-1 tide-state" x="${f(ft.state[0])}" y="${f(ft.state[1])}" text-anchor="middle" data-tide-state="${ft.id}" data-hwfc="${hw}" data-dry="${ft.levels[0].dry}">(dries at low water)</text>`);
+        ft.live = `<p class="gz-tide" data-tide-for="${ft.id}" data-hwfc="${hw}" data-dry="${ft.levels[0].dry}">The tide on this chart is worked out in your browser, so with JavaScript switched off it can&rsquo;t say whether the causeway is open.</p>`;
+        place(ft, isl, L.at, lab("lab-feature"), 24);
+        break;
+      }
+      case "refuge":
+        marks.push(refuge(ft.at[0], ft.at[1]));
+        place(ft, isl, ft.at, lab("lab-feature lab-small", 2), 14);
+        break;
+      case "mill":
+        marks.push(tideMill(ft.at[0], ft.at[1], ft.dam));
+        avoid.push([ft.at, 20]);
+        place(ft, isl, ft.at, lab("lab-feature"), 18);
+        break;
       case "octopus":
         marks.push(octopus(ft.at[0], ft.at[1], 8));
         place(ft, isl, [ft.at[0], ft.at[1] - 10], lab("lab-feature lab-creature"), 60);
@@ -287,6 +315,14 @@ for (const isl of islands) {
     marks.push(reef(roughen(isl.reef.path, isl.reef.seed + 2, { closed: false, minLen: 5, rough: 0.1 }), isl.reef.seed));
   }
   for (const [x, y, t] of isl.soundings || []) labels.push(label(esc(t), [x, y], "lab-sounding", { lod: 2 }));
+  for (const [x, y, t] of isl.dries || []) labels.push(label(esc(t), [x, y], "lab-sounding lab-dries", { lod: 2 }));
+  if (isl.tide) {
+    // Written the way old charts wrote the establishment of a port: H.W.F.&C. IVh 30m.
+    const h = Math.floor(isl.tide.hwfc);
+    const m = Math.round((isl.tide.hwfc - h) * 60);
+    const roman = ["O", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"][h];
+    labels.push(label(`H.W.F.&amp;C. ${roman}<tspan class="sup" dy="-0.4em">h</tspan><tspan dy="0.4em"> ${m}</tspan><tspan class="sup" dy="-0.4em">m</tspan>`, isl.tide.label.at, "lab-sounding lab-hwfc", { lod: 1 }));
+  }
 
   const [lx, ly] = isl.label.at;
   places.push({ ...isl, island: isl, isIsland: true });
@@ -348,11 +384,12 @@ const limits = [Math.min(home[0], edBox[0] - 300) - 1400, Math.min(home[1], edBo
 
 const svg = `<svg class="atlas-svg" id="atlas-svg" xmlns="http://www.w3.org/2000/svg" viewBox="${home.map(f).join(" ")}" data-home="${home.map(f).join(" ")}" data-newest="${newest.map(f).join(" ")}" data-limits="${limits.map(f).join(" ")}" role="group" aria-labelledby="atlas-svg-title" tabindex="-1">
 <title id="atlas-svg-title">A hand-drawn chart of ${esc(atlas.name)}: ${islands.map((i) => esc(i.name)).join(", ")}, in the ${esc(seas[0].name)}.</title>
-<defs><pattern id="hatch" patternUnits="userSpaceOnUse" width="2.6" height="2.6" patternTransform="rotate(58)"><path class="hatch-line" d="M0 0V2.6"/></pattern>${defs.join("")}</defs>
+<defs><pattern id="hatch" patternUnits="userSpaceOnUse" width="2.6" height="2.6" patternTransform="rotate(58)"><path class="hatch-line" d="M0 0V2.6"/></pattern>${tidal.length ? `<pattern id="sand" patternUnits="userSpaceOnUse" width="13" height="11"><path class="sand-dot" d="M1.5 2h0M6.8 1.2h0M10.9 3.4h0M4.2 5.6h0M8.6 7.1h0M1.2 8.8h0M11.8 9.4h0M5.9 10h0"/></pattern>` : ""}${defs.join("")}</defs>
 <rect class="sea" x="${f(limits[0] - 4000)}" y="${f(limits[1] - 4000)}" width="${f(limits[2] - limits[0] + 8000)}" height="${f(limits[3] - limits[1] + 8000)}"/>
 ${rhumbs(hub[0], hub[1], 860, 5200)}
 <g class="rings">${ringSvg}</g>
 ${lagoons ? `<g class="lagoons">${lagoons}</g>` : ""}
+${tidal.length ? `<g class="tidals">${tidal.join("")}</g>` : ""}
 <g class="lands">${land.join("")}</g>
 <g class="relief">${relief.map((r) => r[1]).join("")}</g>
 <g class="marks">${marks.join("")}${furniture}</g>
@@ -372,7 +409,7 @@ const isoOf = (day) => new Date(Date.UTC(2026, 8, 22 + day)).toISOString().slice
 const entry = (p) => `<article class="gz-entry" id="gz-${p.id}" data-for="${p.id}">
   <h4 class="gz-name"><button type="button" class="gz-show" data-show="${p.id}">${esc(p.name)}</button></h4>
   <p class="gz-kind">${esc(p.kind)} &middot; charted <time datetime="${isoOf(p.day ?? p.island?.day)}">${dayOf(p.day ?? p.island?.day)}</time></p>
-  <div class="gz-text"><p>${p.text}</p>${p.note ? `<p class="gz-note"><span>Cartographer&rsquo;s note.</span> ${p.note}</p>` : ""}</div>
+  <div class="gz-text"><p>${p.text}</p>${p.live || ""}${p.note ? `<p class="gz-note"><span>Cartographer&rsquo;s note.</span> ${p.note}</p>` : ""}</div>
 </article>`;
 
 const gazetteer = [

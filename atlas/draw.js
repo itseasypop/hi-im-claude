@@ -399,3 +399,49 @@ export const track = (pts, stops) => {
   const marks = stops.map(({ at: [x, y] }) => `<circle class="track-stop" cx="${f(x)}" cy="${f(y)}" r="2.6"/>`).join("");
   return `<g class="track"><path class="track-line" d="${poly(chaikin(chaikin(pts, false), false), false)}"/>${marks}</g>`;
 };
+
+/* ---------------- added on Day 3, for Anon ---------------- */
+
+// A band of even-ish width along a line, pointed at both ends: sandbanks,
+// causeways, spits. `w` is the full width in the middle.
+export const ribbon = (line, w, taper = 0.22) => {
+  const c = chaikin(chaikin(line, false), false);
+  const acc = [0];
+  for (let i = 1; i < c.length; i++) acc.push(acc[i - 1] + Math.hypot(c[i][0] - c[i - 1][0], c[i][1] - c[i - 1][1]));
+  const total = acc[acc.length - 1] || 1;
+  const left = [];
+  const right = [];
+  c.forEach((p, i) => {
+    const a = c[Math.max(0, i - 1)];
+    const b = c[Math.min(c.length - 1, i + 1)];
+    const len = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1;
+    const n = [-(b[1] - a[1]) / len, (b[0] - a[0]) / len];
+    const e = Math.min(acc[i], total - acc[i]) / (total * taper);
+    const half = (w / 2) * (e >= 1 ? 1 : Math.sqrt(Math.max(0, e * (2 - e))));
+    left.push([p[0] + n[0] * half, p[1] + n[1] * half]);
+    right.push([p[0] - n[0] * half, p[1] - n[1] * half]);
+  });
+  return [...left, ...right.reverse()];
+};
+
+// Marker posts along a causeway: a short stake with a knob on top.
+export const posts = (line, step = 15, side = 5) =>
+  `<path class="post" d="${walk(chaikin(line, false), step)
+    .slice(1)
+    .map(({ p, n }) => `M${f(p[0] + n[0] * side)} ${f(p[1] + n[1] * side + 1)}V${f(p[1] + n[1] * side - 5)}`)
+    .join("")}"/>`;
+
+// A refuge on stilts, for people the tide catches halfway.
+export const refuge = (x, y) =>
+  `<g class="refuge"><path class="ink-thin" d="M${f(x - 3.4)} ${f(y + 2)}V${f(y - 7)}M${f(x + 3.4)} ${f(y + 2)}V${f(y - 7)}M${f(x - 3.4)} ${f(y - 2)}L${f(x + 3.4)} ${f(y - 6)}M${f(x + 5.4)} ${f(y + 2)}L${f(x + 3.4)} ${f(y - 7)}M${f(x + 4.9)} ${f(y - 0.5)}H${f(x + 3.9)}M${f(x + 4.4)} ${f(y - 3)}H${f(x + 3.6)}"/>${house(x, y - 7, 8, 5.5)}</g>`;
+
+// A tide mill: a mill house with its wheel, beside a dam across a small bay.
+export const tideMill = (x, y, dam) => {
+  let spokes = "";
+  for (let i = 0; i < 8; i++) {
+    const a = (i / 8) * Math.PI;
+    spokes += `M${f(x + 8 + Math.cos(a) * 4.6)} ${f(y - 4 + Math.sin(a) * 4.6)}L${f(x + 8 - Math.cos(a) * 4.6)} ${f(y - 4 - Math.sin(a) * 4.6)}`;
+  }
+  const d = dam ? `<path class="dam" d="M${pt(dam[0])}L${pt(dam[1])}"/><path class="dam-gates" d="${[0.3, 0.5, 0.7].map((t) => { const p = [dam[0][0] + (dam[1][0] - dam[0][0]) * t, dam[0][1] + (dam[1][1] - dam[0][1]) * t]; return `M${f(p[0])} ${f(p[1] - 2.2)}V${f(p[1] + 2.2)}`; }).join("")}"/>` : "";
+  return `<g class="mill">${d}${house(x, y, 10, 7)}<circle class="bldg" cx="${f(x + 8)}" cy="${f(y - 4)}" r="5.2"/><path class="ink-thin" d="${spokes}"/></g>`;
+};

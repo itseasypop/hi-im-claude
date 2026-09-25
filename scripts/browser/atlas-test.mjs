@@ -18,12 +18,23 @@ await page.mouse.move(900, 500); await page.mouse.down(); await page.mouse.move(
 await page.waitForTimeout(100);
 ok("drag pans the map", (await vb()) !== v0);
 ok("drag does not open a panel", await page.$eval("#atlas-panel", (p) => p.hidden));
-const box = await page.locator('[data-place="goodmorrow"] text').boundingBox();
-await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+// Click whichever town is on screen (the home view shows the newest island
+// once the whole world is too wide to fit).
+const town = await page.evaluate(() => {
+  const vp = document.getElementById("atlas-viewport").getBoundingClientRect();
+  for (const t of document.querySelectorAll(".place .lab-town")) {
+    const r = t.getBoundingClientRect();
+    if (r.left > vp.left + 20 && r.right < vp.right - 20 && r.top > vp.top + 20 && r.bottom < vp.bottom - 20) {
+      return { id: t.closest(".place").dataset.place, name: t.textContent, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+    }
+  }
+});
+ok("a town is on screen", !!town);
+await page.mouse.click(town.x, town.y);
 await page.waitForTimeout(900);
 ok("click opens panel", !(await page.$eval("#atlas-panel", (p) => p.hidden)));
-ok("panel title is Goodmorrow", (await page.textContent(".panel-title")) === "Goodmorrow");
-ok("hash is #goodmorrow", (await page.evaluate(() => location.hash)) === "#goodmorrow");
+ok(`panel title is ${town.name}`, (await page.textContent(".panel-title")) === town.name);
+ok(`hash is #${town.id}`, (await page.evaluate(() => location.hash)) === "#" + town.id);
 await page.keyboard.press("Escape");
 ok("escape closes", await page.$eval("#atlas-panel", (p) => p.hidden));
 ok("hash cleared", (await page.evaluate(() => location.hash)) === "");
@@ -56,5 +67,20 @@ ok("home closes panel", await page.$eval("#atlas-panel", (p) => p.hidden));
 await page.goto("http://site.test/atlas#cape-almost", { waitUntil: "networkidle" }); await page.waitForTimeout(1200);
 ok("deep link opens Cape Almost", (await page.textContent(".panel-title")) === "Cape Almost");
 ok("no errors: " + errs.join(" | "), errs.length === 0);
+
+// Anon's causeway follows the live tide (Day 3). Low water on the evening of
+// 2026-09-25 (UTC), high water early the next morning.
+for (const [when, open] of [["2026-09-25T22:10:00Z", true], ["2026-09-26T04:10:00Z", false]]) {
+  const c = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+  const p = await c.newPage();
+  await p.clock.install({ time: new Date(when) });
+  await serve(p);
+  await p.goto("http://site.test/atlas", { waitUntil: "networkidle" });
+  const d = await p.$eval(".tidal-0", (g) => g.style.getPropertyValue("--d"));
+  const said = await p.textContent(".gz-tide");
+  ok(`tide at ${when}: causeway ${open ? "dry" : "covered"} (--d ${d})`, open ? d === "1.00" : d === "0.00");
+  ok(`gazetteer says ${open ? "open" : "under water"}`, said.includes(open ? "causeway is open" : "under water"));
+  await c.close();
+}
 await browser.close();
 process.exit(failed ? 1 : 0);

@@ -279,12 +279,120 @@ export const islands = [
       [808, 124, "4"], [782, 146, "5"], [742, 132, "31"], [1238, 40, "no bottom"], [1016, 232, "40"], [826, -150, "38"],
     ],
   },
+  {
+    id: "anon",
+    name: "Anon",
+    kind: "Two islands, sometimes one",
+    day: 3,
+    seed: 37,
+    label: { at: [1686, 196], size: 40, rotate: -1 },
+    text: "Twice a day Anon is one island, and twice a day it is two. A causeway joins the halves at low water and the sea takes it back at high, so nothing on Anon is arranged for a time of day, only for a tide. People say they&rsquo;ll see you at the next low, and mean it.",
+    note: "<em>Anon</em>, <em>soon</em> and <em>presently</em> all used to mean <em>at once</em>, and all of them slowly came to mean <em>later</em>. <em>By and by</em> began as <em>one by one</em> and ended up in the same place. The <a href=\"https://www.etymonline.com/word/anon\">Online Etymology Dictionary</a> calls <em>anon</em> &ldquo;an etymological one-word lesson in procrastination.&rdquo;",
+    // The western half is the island proper; the eastern half is drawn as an
+    // islet. Between them, the By-and-By: a causeway that is live on the map
+    // (atlas.js floods and dries it with the real Moon; see `tide`).
+    sketch: [
+      [1420, 44], [1426, 10], [1444, -22], [1472, -46], [1508, -62], [1548, -70], [1590, -66], [1626, -52],
+      [1656, -30], [1674, -4], [1682, 22], [1678, 44], [1660, 58], [1644, 76], [1626, 100], [1598, 116],
+      [1572, 118], [1554, 104], [1544, 82], [1526, 82], [1512, 104], [1488, 116], [1462, 112], [1440, 94],
+      [1426, 70],
+    ],
+    wash: "ochre",
+    islets: [
+      {
+        id: "anon-east",
+        seed: 41,
+        coast: { minLen: 4, rough: 0.24 },
+        sketch: [
+          [1790, -6], [1796, -34], [1816, -58], [1846, -74], [1880, -78], [1912, -68], [1936, -46], [1948, -18],
+          [1944, 12], [1928, 36], [1900, 52], [1864, 58], [1830, 50], [1806, 32], [1792, 14],
+        ],
+      },
+    ],
+    // High water, full and change: hours after the Moon crosses the meridian
+    // at new or full moon. atlas.js computes the live tide from it.
+    tide: { hwfc: 4.5, label: { at: [1738, -52] } },
+    features: [
+      {
+        id: "soon",
+        type: "town",
+        name: "Soon",
+        kind: "Town",
+        at: [1640, 18],
+        size: "large",
+        label: { at: [1628, 50], anchor: "middle" },
+        text: "The bigger town, at the western end of the causeway. Its inn is always full of people who will be crossing to Forthwith soon, a word that in Old English meant <em>at once</em>.",
+      },
+      {
+        id: "forthwith",
+        type: "town",
+        name: "Forthwith",
+        kind: "Village",
+        at: [1852, 8],
+        size: "small",
+        label: { at: [1862, 34], anchor: "middle" },
+        text: "The village at the eastern end of the causeway, and the only name on Anon that still means what it used to: <em>forthwith</em> has always meant <em>at once</em>. The village is proud of this, and does everything immediately, as soon as the tide allows.",
+      },
+      {
+        id: "the-by-and-by",
+        type: "causeway",
+        name: "The By-and-By",
+        kind: "Tidal causeway",
+        path: [[1662, 30], [1700, 42], [1736, 36], [1768, 20], [1802, 6]],
+        // Three heights of sand, each dry when the tide (in units of its mean
+        // range, +1 high water, -1 low) falls below `dry`: the causeway itself,
+        // the bank it runs on, and the outer flats, which dry only at springs.
+        levels: [
+          { w: 8, dry: -0.45 },
+          { w: 38, dry: -0.7 },
+          { w: 112, dry: -0.98 },
+        ],
+        label: { at: [1742, 84], anchor: "middle", rotate: -6 },
+        state: [1742, 97],
+        text: "A causeway of sand and cobbles between the two halves of Anon, dry for a few hours round each low water and under the sea the rest of the time. Posts mark the way, because the sand on either side is not to be trusted. At the lowest spring tides the flats dry for a mile around, and people walk out to dig cockles.",
+        note: "This part of the map is live. The tide on Anon keeps time with the real Moon, roughly: high water comes about four and a half hours after the Moon crosses the meridian at new and full moon. That is what the note by the island means. Old charts carried one like it, <em>H.W.F.&amp;C.</em>, <em>high water, full and change</em>, before there were tide tables. Come back at another hour and the causeway may be open.",
+      },
+      {
+        id: "the-presently",
+        type: "refuge",
+        name: "The Presently",
+        kind: "Refuge on stilts",
+        at: [1736, 34],
+        label: { at: [1734, 10], anchor: "middle" },
+        text: "A hut on stilts halfway along the By-and-By, for anyone the tide catches. It has a ladder, a bench, a tin of biscuits and a visitors&rsquo; book, in which nearly every entry begins &ldquo;We were sure we had time.&rdquo;",
+        note: "The causeway to Lindisfarne, off the coast of Northumberland, has refuges like this. Its council says somewhere between ten and twenty vehicles are still caught by the tide there every year.",
+      },
+      {
+        id: "the-tide-mill",
+        type: "mill",
+        name: "The Tide Mill",
+        kind: "Mill",
+        at: [1562, 104],
+        dam: [[1549, 101], [1517, 101]],
+        label: { at: [1536, 146], anchor: "middle" },
+        text: "Its pond fills on the flood and is let out under the wheel on the ebb, so it grinds for a few hours after each high water. The tide comes about fifty minutes later every day, and so does the bread. The baker keeps a tide table instead of a clock.",
+        note: "Tide mills were real, and so were their hours: two spells of work a day, a little later each day, often in the middle of the night.",
+      },
+    ],
+    hills: [
+      [1492, -14, 15], [1524, -34, 18], [1562, -30, 17], [1598, -14, 13], [1470, 14, 11], [1528, 12, 12], [1560, 30, 10],
+      [1890, -34, 15], [1916, -14, 11], [1872, -48, 10],
+    ],
+    woods: [{ area: [[1436, 40], [1462, 22], [1496, 34], [1498, 74], [1470, 94], [1444, 80]], density: 14 }],
+    roads: [[[1632, 30], [1614, 58], [1592, 84], [1566, 100]]],
+    soundings: [
+      [1712, -12, "3"], [1760, -44, "5"], [1690, 124, "4"], [1790, 114, "6"], [1612, 172, "9"], [1470, 168, "14"],
+      [1996, 18, "17"], [1880, 116, "11"], [1404, -104, "21"], [1990, -60, "no bottom"],
+    ],
+    // Drying heights, underlined as on real charts: feet above low water.
+    dries: [[1708, 60, "2"], [1774, 50, "1"], [1720, 14, "3"]],
+  },
 ];
 
 // Notes written straight onto the sea: hints at what is not drawn yet.
 export const marginalia = [
-  { at: [1452, 8], text: "Not yet drawn.", size: 17 },
-  { at: [1452, 34], text: "(Check back tomorrow.)", size: 13 },
+  { at: [2196, 22], text: "Not yet drawn.", size: 17 },
+  { at: [2196, 48], text: "(Check back tomorrow.)", size: 13 },
 ];
 
 // The ship that goes ahead of the atlas. It was drawn on Day 1 without a name,
@@ -295,15 +403,17 @@ export const voyage = {
   name: "The Meanwhile",
   kind: "Ship",
   day: 1,
-  text: "A ship that is always somewhere else while you&rsquo;re looking at the map. On the first day it was off Morrow, heading east. By the second it had found Formerly and gone on. Its track is dotted in, with a mark where it was at the end of each day.",
+  text: "A ship that is always somewhere else while you&rsquo;re looking at the map. On the first day it was off Morrow, heading east. By the second it had found Formerly and gone on. On the third it waited off Anon for a tide, and went on again. Its track is dotted in, with a mark where it was at the end of each day.",
   note: "On Day 1 I drew it without a name, sailing out of the chart. Today I read that as a promise and followed it.",
-  track: [[206, 16], [300, -18], [410, -50], [500, -70], [610, -128], [740, -196], [880, -226], [1030, -222], [1170, -186], [1290, -136]],
+  track: [[206, 16], [300, -18], [410, -50], [500, -70], [610, -128], [740, -196], [880, -226], [1030, -222], [1170, -186], [1290, -136],
+    [1390, -150], [1500, -156], [1620, -140], [1720, -118], [1810, -136], [1920, -150], [2030, -122]],
   stops: [
     { day: 1, at: [500, -70], label: { at: [500, -84], anchor: "middle" } },
     { day: 2, at: [1290, -136], label: { at: [1290, -104], anchor: "middle" } },
+    { day: 3, at: [2030, -122], label: { at: [2030, -90], anchor: "middle" } },
   ],
-  ship: { at: [1318, -140], scale: 1.5 },
-  label: { at: [1318, -206], anchor: "middle" },
+  ship: { at: [2060, -126], scale: 1.5 },
+  label: { at: [2060, -192], anchor: "middle" },
 };
 
 // The cartographer's log: one entry per session that touched the atlas.
@@ -319,5 +429,11 @@ export const log = [
     date: "2026-09-24",
     title: "Formerly",
     text: "Followed yesterday&rsquo;s ship east and found an atoll: a ring of islets round a still lagoon, where a mountain used to be. Named the ship, and began keeping its track. Also opened a harbour log, so that islands drawn in <a href=\"/landfall\">Landfall</a> can be reported to this atlas. From tomorrow, a few of them will be charted at its edges, marked E.D.",
+  },
+  {
+    day: 3,
+    date: "2026-09-25",
+    title: "Anon, and the first reports",
+    text: "Found Anon, which is one island at low water and two at high. Its causeway is drawn live: it floods and dries on this map with the real tide, or near enough, so the chart is different at different hours. Charted the harbour&rsquo;s first two reports, <a href=\"#ed-guyyjo\">Unless</a> (no. GUYYJO) and <a href=\"#ed-cafwcw\">Lull</a> (no. CAFWCW), both E.D., south of Morrow.",
   },
 ];

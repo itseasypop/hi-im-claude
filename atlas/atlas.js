@@ -140,6 +140,7 @@
     panelKind.textContent = entry.querySelector(".gz-kind").textContent;
     panelTitle.textContent = entry.querySelector(".gz-name").textContent.trim();
     panelBody.innerHTML = entry.querySelector(".gz-text").innerHTML;
+    tides();
     panel.hidden = false;
     panel.scrollTop = 0;
     stage.classList.add("has-panel");
@@ -334,6 +335,61 @@
     const id = decodeURIComponent(location.hash.slice(1));
     if (id) open(id);
   });
+
+  /* ---------- the tide ---------- */
+  // Anon's causeway floods and dries with the real Moon, roughly: the phase
+  // comes from a known new moon, high water arrives `hwfc` hours after the Moon
+  // crosses the meridian (the chart's H.W.F.&C.), and spring tides come a day
+  // and a half after new and full moon. Heights are in units of the mean range:
+  // +1 is an ordinary high water, -1 an ordinary low.
+  const SYNODIC = 29.530588853 * 864e5;
+  const NEW_MOON = Date.UTC(2000, 0, 6, 18, 14);
+  const moonPhase = (t) => ((((t - NEW_MOON) / SYNODIC) % 1) + 1) % 1;
+  const rangeAt = (t) => 1 + 0.28 * Math.cos(4 * Math.PI * (moonPhase(t) - 0.05));
+  const tideAt = (t, hwfc) => rangeAt(t) * Math.cos((2 * Math.PI * (t / 36e5 - 12 - 24 * moonPhase(t) - hwfc)) / 12);
+  const clock = (t) => new Date(t).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const span = (ms) => {
+    const m = Math.round(ms / 6e4);
+    return m >= 60 ? `${Math.floor(m / 60)} h${m % 60 ? ` ${m % 60} min` : ""}` : `${m} min`;
+  };
+  // The next time after t that the causeway opens or closes.
+  const turn = (t, hwfc, dry) => {
+    const open = tideAt(t, hwfc) < dry;
+    for (let s = t + 6e4; s < t + 26 * 36e5; s += 6e4) if (tideAt(s, hwfc) < dry !== open) return s;
+    return t;
+  };
+  const report = (now, hwfc, dry) => {
+    const open = tideAt(now, hwfc) < dry;
+    const rising = tideAt(now + 6e5, hwfc) > tideAt(now, hwfc);
+    const next = turn(now, hwfc, dry);
+    let out = open
+      ? `<strong>Just now the causeway is open.</strong> The tide is ${rising ? "rising" : "falling"}, and the sea should close it at about ${clock(next)} your time, in ${span(next - now)}.`
+      : `<strong>Just now the causeway is under water</strong>, and the tide is ${rising ? "rising" : "falling"}. It should open at about ${clock(next)} your time, in ${span(next - now)}, and stay open until about ${clock(turn(next, hwfc, dry))}.`;
+    const p = moonPhase(now);
+    const moon = p < 0.25 || p > 0.75 ? "new" : "full";
+    const days = (((p + 0.25) % 0.5) - 0.25) * 29.53; // from the nearest new or full moon
+    const when = Math.abs(days) < 0.6 ? `the Moon ${moon}` : days > 0 ? `the Moon ${moon} ${Math.round(days) > 1 ? `${Math.round(days)} days` : "a day"} ago` : `the Moon nearly ${moon}`;
+    const range = rangeAt(now);
+    if (range > 1.16) out += ` These are spring tides, with ${when}: the lows are low, the causeway is open longer than usual, and the outer flats dry.`;
+    else if (range < 0.84) out += " These are neap tides, with the Moon at a quarter: the lows aren&rsquo;t very low, the causeway is open for less time than usual, and the outer flats stay covered.";
+    return out;
+  };
+  const tides = () => {
+    const now = Date.now();
+    svg.querySelectorAll(".tidal[data-dry]").forEach((g) => {
+      const d = clamp((Number(g.dataset.dry) - tideAt(now, Number(g.dataset.hwfc))) / 0.12 + 0.5, 0, 1);
+      g.style.setProperty("--d", d.toFixed(2));
+    });
+    svg.querySelectorAll("[data-tide-state]").forEach((el) => {
+      el.textContent = tideAt(now, Number(el.dataset.hwfc)) < Number(el.dataset.dry) ? "(dry now)" : "(under water now)";
+    });
+    document.querySelectorAll(".gz-tide").forEach((el) => {
+      el.innerHTML = report(now, Number(el.dataset.hwfc), Number(el.dataset.dry));
+    });
+  };
+  tides();
+  setInterval(tides, 60000);
+  document.addEventListener("visibilitychange", () => document.hidden || tides());
 
   /* ---------- start ---------- */
   measure();

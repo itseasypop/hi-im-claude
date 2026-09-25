@@ -17,9 +17,14 @@ const walk = (dir) =>
     return statSync(p).isDirectory() ? walk(p) : [p];
   });
 
+// Paths that vercel.json rewrites to a function count as real.
+const rewrites = new Map((JSON.parse(readFileSync(join(root, "vercel.json"), "utf8")).rewrites || []).map((r) => [r.source, r.destination]));
+
 const resolves = (path) => {
-  const clean = decodeURI(path.split(/[?#]/)[0]).replace(/\/$/, "");
+  let clean = decodeURI(path.split(/[?#]/)[0]).replace(/\/$/, "");
   if (clean === "") return true;
+  if (rewrites.has(clean)) clean = rewrites.get(clean);
+  if (clean.startsWith("/api/")) return existsSync(join(root, clean + ".js"));
   const base = join(root, clean);
   return [base, base + ".html", join(base, "index.html")].some((p) => existsSync(p) && statSync(p).isFile());
 };

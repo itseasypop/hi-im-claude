@@ -20,6 +20,7 @@
   --map-cloud: #fdf9f0;
   --map-octo: #ecc6ac;
   --map-lagoon: #e6e2c8;
+  --map-sand: #ead7a6;
   --paper-grain: 0.8;
   --paper-blend: multiply;
   --vignette: rgba(92, 58, 22, 0.2);
@@ -41,6 +42,7 @@
     --map-cloud: #342e26;
     --map-octo: #5b3a2c;
     --map-lagoon: #1d201d;
+    --map-sand: #3b3223;
     --paper-grain: 0.35;
     --paper-blend: screen;
     --vignette: rgba(0, 0, 0, 0.45);
@@ -62,6 +64,7 @@
   --map-cloud: #342e26;
   --map-octo: #5b3a2c;
   --map-lagoon: #1d201d;
+  --map-sand: #3b3223;
   --paper-grain: 0.35;
   --paper-blend: screen;
   --vignette: rgba(0, 0, 0, 0.45);
@@ -240,6 +243,38 @@
 .atlas-svg .crab-mark { fill: none; stroke: var(--map-ink); stroke-width: 0.6; opacity: 0.6; }
 .atlas-svg .track-line { fill: none; stroke: var(--map-red); stroke-width: 1.1; stroke-dasharray: 1.4 4.2; stroke-linecap: round; opacity: 0.85; }
 .atlas-svg .track-stop { fill: var(--map-land); stroke: var(--map-red); stroke-width: 1.1; }
+
+/* Anon (Day 3): sands that dry at low water (atlas.js sets --d from the live
+   tide), marker posts, the refuge on stilts, the tide mill and its dam */
+.atlas-svg .sands { fill: var(--map-sand); opacity: var(--d, 1); transition: opacity 1.5s ease; }
+.atlas-svg .sands-dots { fill: url(#sand); opacity: var(--d, 1); transition: opacity 1.5s ease; }
+.atlas-svg .sand-dot { fill: none; stroke: var(--map-ink); stroke-width: 0.9; stroke-linecap: round; opacity: 0.45; }
+.atlas-svg .sands-edge {
+  fill: none;
+  stroke: var(--map-ink);
+  stroke-width: 0.9;
+  stroke-dasharray: 0.1 3.2;
+  stroke-linecap: round;
+  opacity: calc(0.28 + 0.4 * var(--d, 1));
+  transition: opacity 1.5s ease;
+}
+.atlas-svg .tidal-0 .sands { fill: var(--map-land); }
+.atlas-svg .tidal-0 .sands-dots { display: none; }
+.atlas-svg .tidal-0 .sands-edge { stroke-dasharray: none; stroke-width: 0.7; opacity: calc(0.25 + 0.5 * var(--d, 1)); }
+.atlas-svg .post { stroke: var(--map-ink); stroke-width: 1.1; stroke-linecap: round; }
+.atlas-svg .dam { stroke: var(--map-ink); stroke-width: 2.6; stroke-linecap: round; }
+.atlas-svg .dam-gates { stroke: var(--map-land); stroke-width: 0.9; }
+.atlas-svg .lab-small { --fs: 12px; }
+.atlas-svg .lab-dries { text-decoration: underline; }
+.atlas-svg .lab-hwfc .sup { font-size: 0.7em; }
+.atlas-svg .tide-state { --fs: 9px; }
+.gz-tide {
+  padding: 0.55rem 0.8rem;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--map-sand) 45%, transparent);
+  font-size: 0.97em !important;
+}
+.gz-tide strong { font-weight: 600; }
 
 /* Reported islands (E.D.): drawn from a report, never visited */
 .atlas-svg .ed-land { fill: var(--map-land); opacity: 0.75; }
