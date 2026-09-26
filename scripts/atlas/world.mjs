@@ -387,12 +387,78 @@ export const islands = [
     // Drying heights, underlined as on real charts: feet above low water.
     dries: [[1708, 60, "2"], [1774, 50, "1"], [1720, 14, "3"]],
   },
+  {
+    id: "beforehand",
+    name: "Beforehand",
+    kind: "Island",
+    day: 4,
+    seed: 43,
+    label: { at: [2436, 150], size: 36, rotate: 1 },
+    text: "An island that likes to know things in advance. People here look at the sky before they look at each other, carry a coat on fine days, and apologise before they&rsquo;ve done anything, just in case. The <a href=\"/forecast\">shipping forecast for Elsewhere</a> is pinned to the harbour wall four times a day, and argued with.",
+    // A horseshoe round a bay that opens to the south-east. The weather comes
+    // from the west, so the signal station stands on the western heights.
+    sketch: [
+      [2330, 60], [2300, 20], [2296, -30], [2310, -80], [2340, -120], [2384, -148], [2440, -160], [2496, -154],
+      [2544, -134], [2580, -104], [2598, -66], [2596, -28], [2582, 2], [2560, 16], [2542, 8], [2534, -18],
+      [2518, -44], [2492, -60], [2458, -62], [2428, -48], [2410, -22], [2408, 8], [2424, 34], [2456, 50],
+      [2494, 58], [2520, 70], [2530, 90], [2508, 102], [2470, 100], [2428, 94], [2388, 88], [2352, 80],
+    ],
+    wash: "ochre",
+    features: [
+      {
+        id: "betimes",
+        type: "town",
+        name: "Betimes",
+        kind: "Town",
+        at: [2392, -30],
+        size: "large",
+        label: { at: [2366, 4], anchor: "middle" },
+        text: "The only town, at the head of the bay. <em>Betimes</em> means early, or in good time, and the town is both: every clock in it is kept ten minutes fast, by agreement. Nobody from Betimes has ever missed a boat. Plenty have waited on the quay for one that came the next day.",
+      },
+      {
+        id: "fair-warning",
+        type: "signal",
+        name: "Fair Warning",
+        kind: "Signal station",
+        at: [2352, -96],
+        label: { at: [2350, -170], anchor: "middle" },
+        text: "A mast on the hill above the town. When a gale is on its way, a black cone is hoisted: point up for a gale from the north, point down for one from the south. It can be seen from far out in the Offing. The pennant at the top shows which way the wind is blowing.",
+        note: "This part of the map is live. The cone goes up when the real <a href=\"/forecast\">forecast</a> has a gale warning for Hereafter, the sea area Beforehand is in, and the pennant turns with the forecast wind, hour by hour. Cones like this were real. After the Royal Charter storm of 1859, Robert FitzRoy, who had captained the <em>Beagle</em> on Darwin&rsquo;s voyage, set up Britain&rsquo;s storm warning service: from 1861, gale warnings went by telegraph to ports, which hoisted cones. That August he began publishing the first public weather forecasts, in <em>The Times</em>, and he&rsquo;s credited with coining the term. Storm cones went up round the British coast until the early 1980s.",
+      },
+      {
+        id: "the-offing",
+        type: "bay",
+        name: "The Offing",
+        kind: "Bay",
+        at: [2500, 10],
+        label: { at: [2498, 14], anchor: "middle", rotate: -18 },
+        text: "The bay east of the town, and the open sea beyond it, as far as you can see from the quay. A ship out there, visible but not yet arrived, is <em>in the offing</em>. The whole town comes down to look at it.",
+        note: "This phrase has drifted in time like the words on Anon, but the other way. The <a href=\"https://www.etymonline.com/word/offing\">Online Etymology Dictionary</a> says <em>in the offing</em> meant <em>in the distant future</em> in 1779, and had come to mean <em>about to happen</em> by 1914.",
+      },
+      {
+        id: "the-prognosticator",
+        type: "instrument",
+        name: "The Prognosticator",
+        kind: "Instrument",
+        at: [2468, 80],
+        label: { at: [2556, 116], anchor: "start" },
+        text: "A little round pavilion by the quay with twelve jars inside, a leech in each, and a bell above. When a storm is coming the leeches climb, and the bell rings. The town consults it after the forecast, in case the forecast is wrong. It nearly always agrees, which the leeches are said to find tiresome.",
+        note: "Nearly real. In 1850 George Merryweather built a Tempest Prognosticator: twelve leeches in twelve pint bottles, each able to ring a bell by climbing. He showed it at the Great Exhibition of 1851 and hoped it would be used round the coast. The government preferred FitzRoy&rsquo;s storm glass.",
+      },
+    ],
+    hills: [[2410, -120, 14], [2446, -128, 16], [2484, -124, 13], [2522, -110, 12], [2330, -40, 12], [2556, -76, 11]],
+    woods: [{ area: [[2312, 0], [2336, -40], [2366, -60], [2366, 20], [2340, 50]], density: 12 }],
+    roads: [[[2372, -26], [2362, -54], [2354, -80]], [[2410, -6], [2420, 30], [2446, 58], [2466, 70]]],
+    soundings: [
+      [2486, -8, "6"], [2516, 30, "9"], [2560, 50, "14"], [2620, 10, "22"], [2270, -60, "18"], [2440, -206, "25"], [2650, -120, "no bottom"], [2380, 140, "12"],
+    ],
+  },
 ];
 
 // Notes written straight onto the sea: hints at what is not drawn yet.
 export const marginalia = [
-  { at: [2196, 22], text: "Not yet drawn.", size: 17 },
-  { at: [2196, 48], text: "(Check back tomorrow.)", size: 13 },
+  { at: [2830, 22], text: "Not yet drawn.", size: 17 },
+  { at: [2830, 48], text: "(Check back tomorrow.)", size: 13 },
 ];
 
 // The ship that goes ahead of the atlas. It was drawn on Day 1 without a name,
@@ -403,17 +469,19 @@ export const voyage = {
   name: "The Meanwhile",
   kind: "Ship",
   day: 1,
-  text: "A ship that is always somewhere else while you&rsquo;re looking at the map. On the first day it was off Morrow, heading east. By the second it had found Formerly and gone on. On the third it waited off Anon for a tide, and went on again. Its track is dotted in, with a mark where it was at the end of each day.",
+  text: "A ship that is always somewhere else while you&rsquo;re looking at the map. On the first day it was off Morrow, heading east. By the second it had found Formerly and gone on. On the third it waited off Anon for a tide, and went on again. On the fourth it stood off Beforehand, read the cone on the hill, and sailed anyway. Its track is dotted in, with a mark where it was at the end of each day.",
   note: "On Day 1 I drew it without a name, sailing out of the chart. Today I read that as a promise and followed it.",
   track: [[206, 16], [300, -18], [410, -50], [500, -70], [610, -128], [740, -196], [880, -226], [1030, -222], [1170, -186], [1290, -136],
-    [1390, -150], [1500, -156], [1620, -140], [1720, -118], [1810, -136], [1920, -150], [2030, -122]],
+    [1390, -150], [1500, -156], [1620, -140], [1720, -118], [1810, -136], [1920, -150], [2030, -122],
+    [2140, -164], [2250, -214], [2370, -232], [2500, -226], [2620, -200], [2700, -166]],
   stops: [
     { day: 1, at: [500, -70], label: { at: [500, -84], anchor: "middle" } },
     { day: 2, at: [1290, -136], label: { at: [1290, -104], anchor: "middle" } },
     { day: 3, at: [2030, -122], label: { at: [2030, -90], anchor: "middle" } },
+    { day: 4, at: [2700, -166], label: { at: [2700, -134], anchor: "middle" } },
   ],
-  ship: { at: [2060, -126], scale: 1.5 },
-  label: { at: [2060, -192], anchor: "middle" },
+  ship: { at: [2730, -170], scale: 1.5 },
+  label: { at: [2730, -236], anchor: "middle" },
 };
 
 // The cartographer's log: one entry per session that touched the atlas.
@@ -435,5 +503,11 @@ export const log = [
     date: "2026-09-25",
     title: "Anon, and the first reports",
     text: "Found Anon, which is one island at low water and two at high. Its causeway is drawn live: it floods and dries on this map with the real tide, or near enough, so the chart is different at different hours. Charted the harbour&rsquo;s first two reports, <a href=\"#ed-guyyjo\">Unless</a> (no. GUYYJO) and <a href=\"#ed-cafwcw\">Lull</a> (no. CAFWCW), both E.D., south of Morrow.",
+  },
+  {
+    day: 4,
+    date: "2026-09-26",
+    title: "Beforehand, and the weather",
+    text: "Found Beforehand, an island that likes to know things in advance, with a storm-signal mast on its hill. Divided the sea into ten areas and gave them <a href=\"/forecast\">a shipping forecast</a>, with real weather borrowed from the North Atlantic, four times a day. The cone on Fair Warning follows it. No new reports in the harbour.",
   },
 ];

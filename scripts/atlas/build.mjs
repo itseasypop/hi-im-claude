@@ -16,9 +16,10 @@ import { atlas, seas, islands, marginalia, voyage, log } from "./world.mjs";
 import {
   rng, hashString, f, pt, poly, esc, attr, deg, roughen, inside, bbox, scatter,
   mountain, cloud, tree, town, lighthouse, rock, bench, octopus, rose, rhumbs, scaleBar, ship,
-  palm, reef, drowned, crab, track, ribbon, posts, refuge, tideMill,
+  palm, reef, drowned, crab, track, ribbon, posts, refuge, tideMill, signalMast, prognosticator,
 } from "../../atlas/draw.js";
 import { decode, coastSeed, encodeNames } from "../../landfall/chart.js";
+import { AREAS, REGION, insidePoly } from "../../forecast/areas.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "..", "..");
@@ -186,7 +187,7 @@ for (const isl of islands) {
   for (const ft of isl.features) {
     const L = ft.label || {};
     const lab = (cls, lod = 1) => label(esc(ft.name), L.at, cls, { anchor: L.anchor, rotate: L.rotate, lod, onLand: inside(L.at, main) });
-    if (ft.at && !["octopus", "islet", "crab", "drowned", "pass", "refuge"].includes(ft.type) && !onIsland(ft.at)) warnings.push(`${ft.id}: point is not on ${isl.name}`);
+    if (ft.at && !["octopus", "islet", "crab", "drowned", "pass", "refuge", "bay"].includes(ft.type) && !onIsland(ft.at)) warnings.push(`${ft.id}: point is not on ${isl.name}`);
 
     switch (ft.type) {
       case "town":
@@ -278,6 +279,26 @@ for (const isl of islands) {
         marks.push(tideMill(ft.at[0], ft.at[1], ft.dam));
         avoid.push([ft.at, 20]);
         place(ft, isl, ft.at, lab("lab-feature"), 18);
+        break;
+      case "bay":
+        place(ft, isl, L.at, lab("lab-feature lab-water"), 30);
+        break;
+      case "signal": {
+        // A hill with a storm-signal mast; atlas.js hoists the cone and turns
+        // the pennant from the live forecast for the sea area it stands in.
+        const area = AREAS.find((a) => insidePoly(ft.at, a.poly));
+        if (!area) warnings.push(`${ft.id}: not in any forecast area`);
+        const mast = signalMast(ft.at[0] + 0.7, ft.at[1] - 4.5).replace('<g class="mast">', `<g class="mast" data-signal-area="${area?.id}">`);
+        relief.push([ft.at[1], mountain(ft.at[0], ft.at[1] + 16, 17) + mast]);
+        avoid.push([ft.at, 30]);
+        ft.live = `<p class="gz-signal" data-signal-area="${area?.id}">The cone and pennant on this chart follow the real forecast, which your browser fetches; with JavaScript switched off they can&rsquo;t.</p>`;
+        place(ft, isl, L.at, lab("lab-feature"), 24);
+        break;
+      }
+      case "instrument":
+        marks.push(prognosticator(ft.at[0], ft.at[1]));
+        avoid.push([ft.at, 12]);
+        place(ft, isl, ft.at, lab("lab-feature lab-small", 2), 14);
         break;
       case "octopus":
         marks.push(octopus(ft.at[0], ft.at[1], 8));
@@ -477,6 +498,85 @@ const thumb = `<svg class="atlas-thumb" viewBox="${[tx0, ty0, tx1 - tx0, ty1 - t
   .map((i) => `<text class="th-label" x="${f(i.label.at[0])}" y="${f(i.label.at[1])}" transform="rotate(${i.label.rotate || 0} ${f(i.label.at[0])} ${f(i.label.at[1])})">${esc(i.name.toUpperCase())}</text>`)
   .join("")}</svg>`;
 
+/* ---------------- the forecast chart ---------------- */
+
+// forecast.html: the sea areas over a quiet copy of the coasts, with the real
+// latitudes and longitudes their weather comes from round the edge. The page
+// draws the live layers (isobars, winds, warnings) on top.
+const fcChart = (() => {
+  const R = REGION;
+  const [W, H] = [R.x1 - R.x0, R.y1 - R.y0];
+  const m = 120;
+  const view = [R.x0 - m, R.y0 - m, W + 2 * m, H + 2 * m];
+  const X = (lon) => R.x0 + ((lon - R.lon0) / (R.lon1 - R.lon0)) * W;
+  const Y = (lat) => R.y0 + ((lat - R.lat0) / (R.lat1 - R.lat0)) * H;
+  const src = [...landmasses, ...reefs.map((r) => ({ id: r.island + "-reef", points: r.outer }))];
+  const defsFc = [...src, ...edLands].map((c) => `<path id="fc-${c.id}" d="${poly(thin(c.points, 5))}"/>`).join("");
+  const ringsFc = [26, 11]
+    .map((d, i) => src.map((c) => `<use href="#fc-${c.id}" class="fc-ring" style="stroke-width:${2 * d + 3};opacity:${[0.22, 0.38][i]}"/><use href="#fc-${c.id}" class="fc-ring-clear" style="stroke-width:${2 * d - 3}"/>`).join(""))
+    .join("");
+  const lagoonsFc = reefs.map((r) => `<use href="#fc-${r.island}-reef" class="fc-reef"/><path class="fc-lagoon" d="${poly(thin(r.lagoon, 5))}"/>`).join("");
+  const landFc = landmasses.map((c) => `<use href="#fc-${c.id}" class="fc-land"/>`).join("") + edLands.map((c) => `<use href="#fc-${c.id}" class="fc-land fc-ed"/>`).join("");
+
+  // Boundaries: every polygon edge, split wherever another area's corner
+  // sits on it, drawn once.
+  const corners = AREAS.flatMap((a) => a.poly);
+  const onSeg = ([px, py], [ax, ay], [bx, by]) =>
+    Math.abs((bx - ax) * (py - ay) - (by - ay) * (px - ax)) < 1e-6 && px >= Math.min(ax, bx) && px <= Math.max(ax, bx) && py >= Math.min(ay, by) && py <= Math.max(ay, by);
+  const segs = new Map();
+  for (const a of AREAS)
+    a.poly.forEach((p, i) => {
+      const q = a.poly[(i + 1) % a.poly.length];
+      const cuts = [p, q, ...corners.filter((c) => onSeg(c, p, q))].sort((u, v) => Math.hypot(u[0] - p[0], u[1] - p[1]) - Math.hypot(v[0] - p[0], v[1] - p[1]));
+      for (let k = 0; k + 1 < cuts.length; k++) {
+        const [u, v] = [cuts[k], cuts[k + 1]];
+        if (u[0] === v[0] && u[1] === v[1]) continue;
+        const onFrame = (u[0] === v[0] && (u[0] === R.x0 || u[0] === R.x1)) || (u[1] === v[1] && (u[1] === R.y0 || u[1] === R.y1));
+        if (onFrame) continue;
+        const key = [u, v].map((w) => w.join(",")).sort().join(" ");
+        segs.set(key, `M${f(u[0])} ${f(u[1])}L${f(v[0])} ${f(v[1])}`);
+      }
+    });
+
+  // Graticule: the real ocean underneath, every 5 degrees of longitude and 2 of latitude.
+  let grat = "";
+  let ticks = "";
+  for (let lon = -45; lon <= -15; lon += 5) {
+    const x = X(lon);
+    if (x > R.x0 + 1 && x < R.x1 - 1) grat += `M${f(x)} ${f(R.y0)}V${f(R.y1)}`;
+    ticks += `<text class="fc-tick" x="${f(x)}" y="${f(R.y1 + 62)}" text-anchor="middle">${-lon}&deg;W</text><text class="fc-tick" x="${f(x)}" y="${f(R.y0 - 40)}" text-anchor="middle">${-lon}&deg;W</text>`;
+  }
+  for (let lat = 46; lat <= 54; lat += 2) {
+    const y = Y(lat);
+    grat += `M${f(R.x0)} ${f(y)}H${f(R.x1)}`;
+    ticks += `<text class="fc-tick" x="${f(R.x0 - 20)}" y="${f(y + 12)}" text-anchor="end">${lat}&deg;N</text><text class="fc-tick" x="${f(R.x1 + 20)}" y="${f(y + 12)}" text-anchor="start">${lat}&deg;N</text>`;
+  }
+
+  const areaFills = AREAS.map((a) => `<path class="fc-area" data-area="${a.id}" d="${poly(a.poly)}"/>`).join("");
+  const names = AREAS.map((a) => `<text class="fc-name" data-area="${a.id}" x="${f(a.label[0])}" y="${f(a.label[1])}" text-anchor="middle">${esc(a.name.toUpperCase())}</text>`).join("");
+  const hitsFc = AREAS.map((a) => `<a class="fc-hit" data-area="${a.id}" href="#fc-${a.id}" aria-label="${attr(a.name)}: read its forecast"><path d="${poly(a.poly)}"/></a>`).join("");
+
+  return `<svg class="fc-svg" id="fc-svg" xmlns="http://www.w3.org/2000/svg" viewBox="${view.map(f).join(" ")}" role="group" aria-labelledby="fc-svg-title">
+<title id="fc-svg-title">A chart of the sea areas of Elsewhere: ${AREAS.map((a) => esc(a.name)).join(", ")}. Their weather is borrowed from the North Atlantic between ${R.lat1}&deg; and ${R.lat0}&deg;N and ${-R.lon1}&deg; and ${-R.lon0}&deg;W.</title>
+<defs>${defsFc}</defs>
+<rect class="fc-sea" x="${f(view[0])}" y="${f(view[1])}" width="${f(view[2])}" height="${f(view[3])}"/>
+<g class="fc-areas">${areaFills}</g>
+<path class="fc-grat" d="${grat}"/>
+<g class="fc-rings">${ringsFc}</g>
+<g class="fc-lagoons">${lagoonsFc}</g>
+<g class="fc-lands">${landFc}</g>
+<g class="fc-isobars" id="fc-isobars"></g>
+<path class="fc-bounds" d="${[...segs.values()].join("")}"/>
+<rect class="fc-frame" x="${f(R.x0)}" y="${f(R.y0)}" width="${f(W)}" height="${f(H)}"/>
+<rect class="fc-frame-outer" x="${f(R.x0 - 14)}" y="${f(R.y0 - 14)}" width="${f(W + 28)}" height="${f(H + 28)}"/>
+<g class="fc-ticks">${ticks}</g>
+<g class="fc-names">${names}</g>
+<g class="fc-systems" id="fc-systems"></g>
+<g class="fc-hits">${hitsFc}</g>
+<g class="fc-winds" id="fc-winds"></g>
+</svg>`;
+})();
+
 /* ---------------- write ---------------- */
 
 const splice = (file, name, content) => {
@@ -495,6 +595,8 @@ if (existsSync(join(root, "index.html")) && readFileSync(join(root, "index.html"
   splice("index.html", "atlas-thumb", thumb);
   splice("index.html", "atlas-counts", counts);
 }
+
+if (existsSync(join(root, "forecast.html"))) splice("forecast.html", "forecast-map", fcChart);
 
 // For Landfall: which reported islands made it onto the chart.
 writeFileSync(

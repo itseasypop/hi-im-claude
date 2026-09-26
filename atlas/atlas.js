@@ -391,6 +391,62 @@
   setInterval(tides, 60000);
   document.addEventListener("visibilitychange", () => document.hidden || tides());
 
+  /* ---------- the weather ---------- */
+  // Fair Warning's cone and pennant follow the real forecast for the sea area
+  // the mast stands in (see /forecast): a cone while that area has a gale
+  // warning, point up for a gale from the north, down for one from the south,
+  // and a pennant that streams with the forecast wind for this hour.
+  const POINTS8 = ["northerly", "northeasterly", "easterly", "southeasterly", "southerly", "southwesterly", "westerly", "northwesterly"];
+  const windWords = (dir, force) => (force ? `${POINTS8[Math.round(dir / 45) % 8]}, force ${force}` : "calm");
+  let bulletin = null;
+  let bulletinUrl = "";
+  const weather = async () => {
+    try {
+      const { bulletinUrl: urlFor } = await import("/forecast/areas.js");
+      const url = urlFor();
+      if (url !== bulletinUrl) {
+        const r = await fetch(url);
+        if (!r.ok) throw new Error(String(r.status));
+        const b = await r.json();
+        if (!b.areas) throw new Error("no areas");
+        bulletin = b;
+        bulletinUrl = url;
+      }
+    } catch (e) {
+      if (!bulletin) return;
+    }
+    const issue = Date.parse(bulletin.issue);
+    const hour = clamp(Math.floor((Date.now() - issue) / 36e5), 0, 24);
+    const issued = bulletin.issue.slice(11, 13) + "00";
+    const read = (id) => {
+      const a = bulletin.areas.find((x) => x.id === id);
+      if (!a) return null;
+      const [dir, , force] = a.hours[Math.min(hour, a.hours.length - 1)];
+      const g = a.gale;
+      const cone = g ? (/north/.test(g.dir) ? "north" : /south/.test(g.dir) ? "south" : Math.cos((dir * Math.PI) / 180) >= 0 ? "north" : "south") : null;
+      return { a, dir, force, g, cone };
+    };
+    svg.querySelectorAll(".mast[data-signal-area]").forEach((m) => {
+      const w = read(m.dataset.signalArea);
+      if (!w) return;
+      m.classList.toggle("is-north", w.cone === "north");
+      m.classList.toggle("is-south", w.cone === "south");
+      const p = m.querySelector(".pennant");
+      // The flag is drawn streaming east; turn it to stream downwind.
+      if (p) p.setAttribute("transform", `rotate(${(w.force ? w.dir + 90 : 90).toFixed(0)} ${p.dataset.pivot})`);
+    });
+    document.querySelectorAll(".gz-signal[data-signal-area]").forEach((el) => {
+      const w = read(el.dataset.signalArea);
+      if (!w) return;
+      const now = `Just now the forecast wind there is ${windWords(w.dir, w.force)}, and the pennant shows it.`;
+      el.innerHTML = w.g
+        ? `<strong>The ${w.cone} cone is up.</strong> The <a href="/forecast">forecast</a> for ${w.a.name} has a gale warning: ${w.g.text.charAt(0).toLowerCase() + w.g.text.slice(1)}. ${now}`
+        : `<strong>No cone is flying.</strong> The <a href="/forecast">forecast</a> for ${w.a.name}, issued at ${issued} UTC, has no gale in it. ${now}`;
+    });
+  };
+  weather();
+  setInterval(weather, 5 * 60000);
+
   /* ---------- start ---------- */
   measure();
   set(homeView());

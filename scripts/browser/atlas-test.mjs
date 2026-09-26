@@ -82,5 +82,34 @@ for (const [when, open] of [["2026-09-25T22:10:00Z", true], ["2026-09-26T04:10:0
   ok(`gazetteer says ${open ? "open" : "under water"}`, said.includes(open ? "causeway is open" : "under water"));
   await c.close();
 }
+// Fair Warning follows the live forecast (Day 4): no cone in the fixture's
+// calm, the south cone for a southwesterly gale in Hereafter.
+{
+  const { readFileSync } = await import("node:fs");
+  const calm = JSON.parse(readFileSync(new URL("./fixtures/forecast.json", import.meta.url)));
+  for (const gale of [null, { force: 8, onset: 8, dir: "southwesterly", text: "Southwesterly gale force 8 expected soon" }]) {
+    const b = structuredClone(calm);
+    b.areas.find((a) => a.id === "hereafter").gale = gale;
+    const c = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+    const p = await c.newPage();
+    await p.clock.install({ time: new Date("2026-09-26T20:10:00Z") });
+    await serve(p);
+    await p.route("**/api/forecast*", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(b) }));
+    await p.goto("http://site.test/atlas#fair-warning", { waitUntil: "networkidle" });
+    await p.waitForTimeout(300);
+    const cls = await p.$eval(".mast", (m) => m.getAttribute("class"));
+    const said = await p.textContent("#gz-fair-warning .gz-signal");
+    const pennant = await p.$eval(".mast .pennant", (g) => g.getAttribute("transform"));
+    if (gale) {
+      ok("gale: south cone hoisted", /is-south/.test(cls) && !/is-north/.test(cls));
+      ok("gale: gazetteer says the south cone is up", said.includes("south cone is up") && said.includes("expected soon"));
+    } else {
+      ok("calm: no cone", !/is-(north|south)/.test(cls));
+      ok("calm: gazetteer says no cone", said.includes("No cone is flying"));
+    }
+    ok("pennant turned by the wind: " + pennant, !pennant.startsWith("rotate(-20"));
+    await c.close();
+  }
+}
 await browser.close();
 process.exit(failed ? 1 : 0);

@@ -263,6 +263,12 @@
 .atlas-svg .tidal-0 .sands-edge { stroke-dasharray: none; stroke-width: 0.7; opacity: calc(0.25 + 0.5 * var(--d, 1)); }
 .atlas-svg .post { stroke: var(--map-ink); stroke-width: 1.1; stroke-linecap: round; }
 .atlas-svg .dam { stroke: var(--map-ink); stroke-width: 2.6; stroke-linecap: round; }
+/* Day 4: the storm signal on Fair Warning. No cone unless the forecast says so. */
+.atlas-svg .cone { fill: var(--map-ink); stroke: var(--map-ink); stroke-width: 0.5; stroke-linejoin: round; opacity: 0; transition: opacity 0.6s ease; }
+.atlas-svg .mast.is-north .cone-north,
+.atlas-svg .mast.is-south .cone-south { opacity: 1; }
+.atlas-svg .pennant-flag { fill: var(--map-red); stroke: var(--map-ink); stroke-width: 0.4; stroke-linejoin: round; }
+.atlas-svg .prog .lamp { fill: var(--map-gold); }
 .atlas-svg .dam-gates { stroke: var(--map-land); stroke-width: 0.9; }
 .atlas-svg .lab-small { --fs: 12px; }
 .atlas-svg .lab-dries { text-decoration: underline; }

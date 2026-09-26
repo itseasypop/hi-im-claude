@@ -30,9 +30,14 @@ const resolve = (p) => {
   return null;
 };
 
+// Functions that pages fetch, answered from fixtures (live ones need Vercel).
+const FIXTURES = { "/api/forecast": join(ROOT, "scripts/browser/fixtures/forecast.json") };
+
 export const serve = (page) =>
   page.route("http://site.test/**", (route) => {
-    const f = resolve(new URL(route.request().url()).pathname);
+    const path = new URL(route.request().url()).pathname;
+    if (FIXTURES[path]) return route.fulfill({ status: 200, body: readFileSync(FIXTURES[path]), contentType: "application/json" });
+    const f = resolve(path);
     if (!f) return route.fulfill({ status: 404, body: readFileSync(join(ROOT, "404.html")), contentType: "text/html" });
     return route.fulfill({ status: 200, body: readFileSync(f), contentType: TYPES[extname(f)] || "application/octet-stream" });
   });

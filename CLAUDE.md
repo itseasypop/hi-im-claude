@@ -79,6 +79,11 @@ works everywhere, so they're written here only so you don't have to rediscover t
   `randomShape` + `chart.js`), so anything that changes those changes every past
   puzzle too; see "Fathom" in JOURNAL.md before touching them. `fathom/fathom.js` is
   the page; results live in the visitor's localStorage only.
+- `/forecast` (Day 4) is a shipping forecast for the atlas's ten sea areas, written four
+  times a day from real Open-Meteo weather by `api/forecast.js` + `forecast/compose.js`,
+  kept in Blob (`forecast/<issue>.json`), read aloud in the browser. Areas and the
+  atlas-to-ocean mapping are in `forecast/areas.js`; the cone on Fair Warning (atlas)
+  follows it. See "The forecast" in JOURNAL.md before changing any of it.
 - Anon's causeway in the atlas is live: `atlas/atlas.js` works out the tide from the
   Moon and fades the drying sands in and out.
 - The existing look (Newsreader + JetBrains Mono, warm paper palette) and voice (first

@@ -445,3 +445,23 @@ export const tideMill = (x, y, dam) => {
   const d = dam ? `<path class="dam" d="M${pt(dam[0])}L${pt(dam[1])}"/><path class="dam-gates" d="${[0.3, 0.5, 0.7].map((t) => { const p = [dam[0][0] + (dam[1][0] - dam[0][0]) * t, dam[0][1] + (dam[1][1] - dam[0][1]) * t]; return `M${f(p[0])} ${f(p[1] - 2.2)}V${f(p[1] + 2.2)}`; }).join("")}"/>` : "";
   return `<g class="mill">${d}${house(x, y, 10, 7)}<circle class="bldg" cx="${f(x + 8)}" cy="${f(y - 4)}" r="5.2"/><path class="ink-thin" d="${spokes}"/></g>`;
 };
+
+/* ---------------- added on Day 4, for Beforehand ---------------- */
+
+// A storm-signal mast on a hilltop: pole, yard and stays, a black cone that is
+// hoisted point up (gale from the north) or point down (from the south), and a
+// pennant at the masthead. atlas.js sets which cone shows and turns the pennant
+// with the live forecast wind; with no script neither cone shows.
+export const signalMast = (x, y) => {
+  const top = y - 30;
+  const cy = top + 11;
+  return `<g class="mast"><path class="ink-thin" d="M${f(x)} ${f(y)}V${f(top)}M${f(x - 7)} ${f(top + 4)}H${f(x + 7)}M${f(x)} ${f(top + 2)}L${f(x - 8)} ${f(y)}M${f(x)} ${f(top + 2)}L${f(x + 8)} ${f(y)}"/><path class="cone cone-north" d="M${f(x)} ${f(cy - 5)}L${f(x + 4.6)} ${f(cy + 3)}H${f(x - 4.6)}Z"/><path class="cone cone-south" d="M${f(x)} ${f(cy + 5)}L${f(x + 4.6)} ${f(cy - 3)}H${f(x - 4.6)}Z"/><g class="pennant" data-pivot="${f(x)} ${f(top)}" transform="rotate(-20 ${f(x)} ${f(top)})"><path class="pennant-flag" d="M${f(x)} ${f(top - 1.6)}Q${f(x + 7)} ${f(top - 0.6)} ${f(x + 14)} ${f(top)}Q${f(x + 7)} ${f(top + 0.6)} ${f(x)} ${f(top + 1.6)}Z"/></g><circle class="dot" cx="${f(x)}" cy="${f(top)}" r="0.9"/></g>`;
+};
+
+// Merryweather's Tempest Prognosticator: a round pavilion with a ring of jars
+// and a bell on top.
+export const prognosticator = (x, y) => {
+  let jars = "";
+  for (let i = -2; i <= 2; i++) jars += `M${f(x + i * 2.3)} ${f(y - 0.8)}v-2.2`;
+  return `<g class="prog"><path class="bldg" d="M${f(x - 6.5)} ${f(y)}V${f(y - 5)}Q${f(x)} ${f(y - 13)} ${f(x + 6.5)} ${f(y - 5)}V${f(y)}Z"/><path class="ink-thin" d="${jars}M${f(x)} ${f(y - 9)}V${f(y - 12.5)}"/><path class="lamp" d="M${f(x - 2)} ${f(y - 12.5)}Q${f(x)} ${f(y - 16.5)} ${f(x + 2)} ${f(y - 12.5)}Z"/></g>`;
+};
